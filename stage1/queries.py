@@ -17,6 +17,8 @@ class QueryEngine:
         if ("prohibited" in t or "forbidden" in t) and ("medication" in t or "concomitant" in t or "drug" in t):return self._prohibited(q)
         if "dosing" in t or "dose" in t or "exposure" in t:return self._dosing(q)
         if "patient 360" in t or "patient360" in t:return self._patient(q)
+        if "protocol" in t or "lab manual" in t or "statistical analysis plan" in t or " sap " in f" {t} ":
+            return self._document(q)
         return self._generic(q)
 
     def _hys(self,q):
@@ -34,6 +36,23 @@ class QueryEngine:
             return []
         from starter.schemas import RecordRef
         return [RecordRef(domain="",usubjid=None,seq=None,document="lab-manual.md",section="Laboratory Manual")]
+
+    def _document(self,q):
+        from starter.schemas import RecordRef
+        t=q.text.lower()
+        cut=q.cut
+        if "protocol" in t and ("version" in t or "which" in t):
+            version=protocol_version(cut)
+            name=f"protocol_v{version}.md"
+            return [str(version)],[RecordRef(domain="",usubjid=None,seq=None,document=name,section="Protocol version")],f"Protocol version {version} is in force at cut {cut}."
+        if "lab manual" in t:
+            name="lab-manual_v3.md" if cut>=9 else "lab-manual.md"
+            return [name],[RecordRef(domain="",usubjid=None,seq=None,document=name,section="Laboratory Manual")],f"Laboratory manual evidence for cut {cut}: {name}."
+        if "sap" in t or "statistical analysis plan" in t:
+            return ["sap.md"],[RecordRef(domain="",usubjid=None,seq=None,document="sap.md",section="Statistical Analysis Plan")],"The statistical analysis plan is available as document evidence."
+        version=protocol_version(cut)
+        name=f"protocol_v{version}.md"
+        return [name],[RecordRef(domain="",usubjid=None,seq=None,document=name,section="Protocol")],f"Protocol document for cut {cut}: {name}."
 
     def _serious(self,q):
         rows=[r for r in self.graph.rows.get("AE",[]) if serious_ae(r)]
