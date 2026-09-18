@@ -9,6 +9,13 @@ class FakeGatewayCrew(ReviewCrew):
     def __init__(self, atlas):
         super().__init__("", "", "", atlas)
         self.calls = []
+        self.memory = {
+            "queries": {},
+            "escalations": {},
+            "rejected": {},
+            "site_flags": {},
+            "open_queries": {},
+        }
 
     def _post(self, base, path, payload):
         self.calls.append((path, payload))
