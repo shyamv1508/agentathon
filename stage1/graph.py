@@ -28,15 +28,28 @@ class StudyGraph:
         self.subjects={s:dict(domains) for s,domains in self.by_subject.items() if s}
         records=sum(len(v) for v in self.rows.values())
         edges=records
+        self._fingerprint = self._fingerprint_now()
+        return {"nodes":records+len(self.subjects),"edges":edges,"records":records,"subjects":len(self.subjects),"build_time_ms":round((time.perf_counter()-t)*1000,3),"cut":cut}
+
+    def _fingerprint_now(self):
         h=hashlib.sha256()
         for name in sorted(os.listdir(self.store.data_dir)):
             if name.endswith(".csv"):
                 p=os.path.join(self.store.data_dir,name)
                 try:
-                    st=os.stat(p); h.update(name.encode()); h.update(str(st.st_size).encode()); h.update(str(st.st_mtime_ns).encode())
-                except OSError: pass
-        self._fingerprint=h.hexdigest()
-        return {"nodes":records+len(self.subjects),"edges":edges,"records":records,"subjects":len(self.subjects),"build_time_ms":round((time.perf_counter()-t)*1000,3),"cut":cut}
+                    st=os.stat(p)
+                    h.update(name.encode())
+                    h.update(str(st.st_size).encode())
+                    h.update(str(st.st_mtime_ns).encode())
+                except OSError:
+                    pass
+        return h.hexdigest()
+
+    def ensure_fresh(self):
+        if self.cut is None:
+            self.build(12)
+        elif self._fingerprint_now() != self._fingerprint:
+            self.build(self.cut)
 
     def patient360(self,usubjid:str)->dict:
         if self.cut is None: self.build()
