@@ -18,6 +18,8 @@ class Atlas:
     def answer(self, question: Question) -> Answer:
         if self.graph.cut != question.cut:
             self.graph.build(question.cut)
+        else:
+            self.graph.ensure_fresh()
         values, evidence, text = self.engine.execute(question)
         evidence = validate(self.graph, evidence)
         confidence = 1.0 if evidence else (0.95 if not values else 0.55)
