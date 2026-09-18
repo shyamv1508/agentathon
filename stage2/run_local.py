@@ -43,7 +43,7 @@ def main():
     print()
     print("Pending escalations:")
     for i, item in enumerate(pending, 1):
-        kind = item.get("type") or item.get("reason") or "UNKNOWN"
+        kind = item.get("code") or item.get("type") or item.get("reason") or "UNKNOWN"
         subject = item.get("usubjid") or item.get("site") or "—"
         print(f"{i}. {kind} — {subject}")
 
