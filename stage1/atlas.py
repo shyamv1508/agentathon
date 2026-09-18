@@ -5,6 +5,7 @@ from starter.schemas import Question, Answer
 from .graph import StudyGraph
 from .queries import QueryEngine
 from .documents import DocumentStore
+from .evidence import validate
 
 
 class Atlas:
@@ -18,6 +19,7 @@ class Atlas:
         if self.graph.cut != question.cut:
             self.graph.build(question.cut)
         values, evidence, text = self.engine.execute(question)
+        evidence = validate(self.graph, evidence)
         confidence = 1.0 if evidence else (0.95 if not values else 0.55)
         return Answer(
             question_id=question.question_id,
