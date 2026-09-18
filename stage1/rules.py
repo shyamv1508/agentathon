@@ -25,8 +25,8 @@ def hys_law_candidates(graph):
             if a.get("LBTESTCD") not in {"ALT","AST"}: continue
             av,aq,_=lab_value(a)
             if av is None or aq in {"<","<="}: continue
-            if a.get("LBTESTCD")=="ALT" and av<=168: continue
-            if a.get("LBTESTCD")=="AST" and av<=120: continue
+            ul = 56 if a.get("LBTESTCD")=="ALT" else 40
+            if av<=3*ul: continue
             ad=parse_date(a.get("LBDTC"))
             if not ad: continue
             for b in labs:
