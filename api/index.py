@@ -67,8 +67,10 @@ def api_home():
 
 
 @app.get("/api/stats")
-def stats():
-    return get_stats()
+def stats(cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    return _GRAPH.build(cut)
 
 
 @app.get("/api/query")
