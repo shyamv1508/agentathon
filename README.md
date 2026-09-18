@@ -1,4 +1,4 @@
-# Study Sentinel — ATLAS
+# Copy-Paste — ATLAS
 
 **Members:**  
 Kamalesh G A  
