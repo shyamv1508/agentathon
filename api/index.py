@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -43,6 +44,21 @@ def answer_question(text: str, cut: int):
         _GRAPH.ensure_fresh()
     question = Question(question_id="web", kind="lookup", text=text, cut=cut)
     return _ATLAS.answer(question).model_dump()
+
+
+@app.get("/")
+def home():
+    return FileResponse(ROOT / "index.html")
+
+
+@app.get("/styles.css")
+def styles():
+    return FileResponse(ROOT / "styles.css")
+
+
+@app.get("/app.js")
+def javascript():
+    return FileResponse(ROOT / "app.js")
 
 
 @app.get("/api")
