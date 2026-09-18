@@ -50,7 +50,8 @@ def hys_law_candidates(graph):
             for b in labs:
                 if b.get("LBTESTCD")!="BILI": continue
                 bv,bq,_=lab_value(b); bd=parse_date(b.get("LBDTC"))
-                if bv is None or bq in {"<","<="} or not bd or abs((bd-ad).days)>14 or bv<=2.4: continue
+                bili_ul = _reference_high(graph,b)
+                if bv is None or bq in {"<","<="} or bili_ul is None or not bd or abs((bd-ad).days)>14 or bv<=2*bili_ul: continue
                 out.append((subject,a,b))
     seen=set(); result=[]
     for x in out:
