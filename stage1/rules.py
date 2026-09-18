@@ -17,6 +17,24 @@ def prohibited_cm(row,version):
     cls=str(row.get("CMCLAS","")).upper()
     return cls=="SYSTEMIC_GLUCOCORTICOID" or (version>=3 and cls=="SULFONYLUREA")
 
+def _reference_high(graph,row):
+    test=str(row.get("LBTESTCD","")).strip().upper()
+    subject=str(row.get("USUBJID",""))
+    parts=subject.split("-")
+    site=parts[1].upper() if len(parts)>=3 else "CENTRAL"
+    ref=graph.store.reference_ranges.get((site,test))
+    if ref is None:
+        ref=graph.store.reference_ranges.get(("CENTRAL",test))
+    if ref is None:
+        return None
+    high,q=parse_number(ref.get("HIGH"))
+    if high is None:
+        return None
+    unit=str(ref.get("UNIT","")).strip().lower()
+    if unit in {"ukat/l","µkat/l","ukat / l"} and test in {"ALT","AST"}:
+        high*=60
+    return high
+
 def hys_law_candidates(graph):
     out=[]
     for subject,doms in graph.by_subject.items():
@@ -25,8 +43,8 @@ def hys_law_candidates(graph):
             if a.get("LBTESTCD") not in {"ALT","AST"}: continue
             av,aq,_=lab_value(a)
             if av is None or aq in {"<","<="}: continue
-            ul = 56 if a.get("LBTESTCD")=="ALT" else 40
-            if av<=3*ul: continue
+            ul = _reference_high(graph,a)
+            if ul is None or av<=3*ul: continue
             ad=parse_date(a.get("LBDTC"))
             if not ad: continue
             for b in labs:
