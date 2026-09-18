@@ -12,6 +12,8 @@ if str(ROOT) not in sys.path:
 from starter.schemas import Question
 from stage1.atlas import Atlas
 from stage1.graph import StudyGraph
+from stage2.crew import ReviewCrew
+import os
 
 DATA_DIR = ROOT / "hackathon-data"
 _GRAPH = StudyGraph(str(DATA_DIR))
@@ -82,5 +84,19 @@ def query(q: str = "", cut: int = 12):
         return answer_question(question, cut)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+@app.get("/api/cycle")
+def cycle(cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    protocol = 3 if cut >= 9 else 2 if cut >= 6 else 1
+    try:
+        os.environ.setdefault("STAGE2_MEMORY_PATH", "/tmp/atlas_stage2_memory.json")
+        os.environ.setdefault("STAGE2_TRACE_PATH", "/tmp/atlas_stage2_trace.jsonl")
+        crew = ReviewCrew("", "", "", _ATLAS)
+        report = crew.run_cycle(cut, protocol)
+        return report.model_dump()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
