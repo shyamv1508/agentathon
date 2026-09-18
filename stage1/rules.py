@@ -59,14 +59,18 @@ def hys_law_candidates(graph):
     return result
 
 def dosing_findings(graph):
-    expected={"DRUG":10.0,"PLACEBO":0.0}; out=[]
+    expected={"DRUG":10.0,"PLACEBO":0.0}
+    out=[]
     for subject,doms in graph.by_subject.items():
-        dm=(doms.get("DM") or [None])[0]; arm=(dm or {}).get("ARM")
+        dm=(doms.get("DM") or [None])[0]
+        arm=(dm or {}).get("ARM")
         if arm not in expected: continue
         ex=doms.get("EX",[])
         if not ex:
-            out.append((subject,"MISSING_EX",[])); continue
+            out.append((subject,"MISSING_EX",[dm] if dm else []))
+            continue
         for r in ex:
-            n,_=parse_number(r.get("EXDOSE"))
-            if n is not None and n!=expected[arm]: out.append((subject,"DOSING_ERROR",[r]))
+            n,q=parse_number(r.get("EXDOSE"))
+            if n is None or q in {"unknown","<","<="} or n!=expected[arm]:
+                out.append((subject,"DOSING_ERROR",[r]))
     return out
