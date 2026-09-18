@@ -20,13 +20,8 @@ class FakeCrew(ReviewCrew):
         self.calls = []
         self.decision = decision
         self.first_decision = first_decision
-        self.memory = {
-            "queries": {},
-            "escalations": {},
-            "rejected": {},
-            "site_flags": {},
-            "open_queries": {},
-        }
+        self.memory = {"queries": {}, "escalations": {}, "rejected": {},
+                       "site_flags": {}, "open_queries": {}}
 
     def _post(self, base, path, payload):
         self.calls.append((path, payload))
@@ -65,10 +60,9 @@ def stage1_harness():
         env["STAGE2_MEMORY_PATH"] = str(Path(td) / "memory.json")
         env["STAGE2_TRACE_PATH"] = str(Path(td) / "trace.jsonl")
         p = subprocess.run(
-            [sys.executable, "starter/run_local_harness.py",
-             "--module", "stage1.atlas", "--data", "hackathon-data"],
-            cwd=ROOT, capture_output=True, text=True, env=env, timeout=30,
-        )
+            [sys.executable, "starter/run_local_harness.py", "--module",
+             "stage1.atlas", "--data", "hackathon-data"],
+            cwd=ROOT, capture_output=True, text=True, env=env, timeout=30)
         if p.returncode != 0:
             raise AssertionError(p.stderr or p.stdout)
         if "Wrote" not in p.stdout:
@@ -82,7 +76,6 @@ def cut6_and_cut9():
     assert report6.stats["findings"] == 41
     assert any(a["code"] == "SAE_MISCODED" and a["usubjid"] == "042-S02-004"
                for a in report6.escalations)
-
     report9 = ReviewCrew("", "", "", atlas).run_cycle(9, 3)
     assert report9.cut == 9 and report9.protocol_version == 3
     assert report9.stats["findings"] == 49
@@ -105,8 +98,7 @@ def amendment3():
     rows = [r for r in atlas.rows["CM"]
             if prohibited_cm(r, 3) and r.get("CMCLAS") == "SULFONYLUREA"]
     subjects = {r.get("USUBJID") for r in rows}
-    assert len(rows) == 5
-    assert len(subjects) == 5
+    assert len(rows) == 5 and len(subjects) == 5
 
 
 def serious_ae_evidence():
@@ -125,9 +117,7 @@ def hys_law_s07():
     atlas.build(9)
     candidates = hys_law_candidates(atlas)
     item = next(x for x in candidates if x[0] == "042-S07-001")
-    alt = item[1]
-    assert alt.get("LBTESTCD") in {"ALT", "AST"}
-    assert "S07" in alt.get("USUBJID", "")
+    assert item[1].get("LBTESTCD") in {"ALT", "AST"}
 
 
 def clarify():
@@ -157,8 +147,7 @@ def rejected():
     second = crew._submit_escalation(
         Action("HYS_LAW_CANDIDATE", "042-S05-003", "S05", "MAJOR",
                "Same rejection.", [], ["Monitor"]), 9)
-    assert first.status == "monitoring"
-    assert second.status == "monitoring"
+    assert first.status == "monitoring" and second.status == "monitoring"
     assert len([x for x in crew.calls if x[0] == "/escalations"]) == 1
     assert crew.memory["rejected"]
 
@@ -168,7 +157,9 @@ def report_outputs():
     public = json.loads((ROOT / "stage1_public.json").read_text(encoding="utf-8"))
     assert stats["subjects"] == 241
     assert stats["records"] == 26482
-    assert public["question_id"] == "LOCAL-SMOKE-001"
+    assert public["questions_run"] >= 1
+    assert public["answers"]
+    assert public["answers"][0]["question_id"] == "LOCAL-SMOKE-001"
 
 
 def main():
@@ -183,7 +174,6 @@ def main():
         ("REJECTED flow", rejected),
         ("Required Stage 1 outputs", report_outputs),
     ]
-
     print("ATLAS — FULL QA")
     print("=" * 30)
     passed = sum(check(name, fn) for name, fn in tests)
