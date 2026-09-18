@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATLAS — Clinical Study Intelligence</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark">A</span><div><strong>ATLAS</strong><small>Study Intelligence</small></div></div>
+      <div class="status"><span></span> StudyGraph online</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">CLINICAL STUDY KNOWLEDGE GRAPH</div>
+      <h1>Ask the study.<br><em>Prove the answer.</em></h1>
+      <p>Query subjects, findings, documents and evidence from one time-aware study graph.</p>
+    </section>
+
+    <section class="query-card">
+      <label for="question">Ask ATLAS</label>
+      <textarea id="question" rows="3" placeholder="e.g. Which subjects have serious adverse events at cut 12?"></textarea>
+      <div class="controls">
+        <div class="cut-control"><span>Data cut</span><select id="cut"><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+        <button id="ask">Run query <span>→</span></button>
+      </div>
+      <div class="suggestions">
+        <button data-q="Which subjects have serious adverse events at cut 12?">Serious AEs</button>
+        <button data-q="Which subjects meet the Hy's Law criteria at cut 12?">Hy's Law</button>
+        <button data-q="Which subjects have prohibited concomitant medication at cut 9?">Prohibited medication</button>
+        <button data-q="Show patient 042-S07-001">Patient 360</button>
+      </div>
+    </section>
+
+    <section id="loading" class="loading hidden">Building answer from the StudyGraph…</section>
+    <section id="result" class="result hidden">
+      <div class="result-head"><div><span class="eyebrow">ATLAS RESULT</span><h2 id="resultTitle">Verified answer</h2></div><div id="confidence" class="confidence"></div></div>
+      <div id="answer" class="answer"></div>
+      <p id="text" class="result-text"></p>
+      <div class="evidence-head"><span>Evidence</span><span id="evidenceCount"></span></div>
+      <div id="evidence" class="evidence"></div>
+    </section>
+
+    <section class="stats"><div><b>241</b><span>Subjects</span></div><div><b>26,482</b><span>Records</span></div><div><b>26,723</b><span>Graph nodes</span></div><div><b>12</b><span>Data cuts</span></div></section>
+    <footer>ATLAS · Evidence-first clinical study analysis</footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
