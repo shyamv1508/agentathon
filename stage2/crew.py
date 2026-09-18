@@ -537,6 +537,34 @@ class ReviewCrew:
             "deviations": deviations,
         }
 
+    def resolve_human_decision(self, cut: int, code: str, usubjid: str | None, decision: str, reason: str = "") -> dict:
+        key = f"{code}|{usubjid}|{None}"
+        matches = [k for k in self.memory.get("escalations", {}) if k.startswith(f"{code}|{usubjid}|")]
+        if not matches:
+            raise ValueError("Escalation not found; run a cycle first.")
+        key = matches[0]
+        entry = self.memory["escalations"][key]
+        decision = decision.upper()
+        if decision == "APPROVED":
+            entry["status"] = "approved"
+            entry["reason"] = reason or "Approved by medical monitor."
+            self.memory["escalations"][key] = entry
+        elif decision == "REJECTED":
+            entry["status"] = "monitoring"
+            entry["reason"] = reason or "Rejected by medical monitor; downgraded to monitoring."
+            self.memory["escalations"][key] = entry
+            self.memory.setdefault("rejected", {})[key] = entry
+        elif decision == "CLARIFY":
+            answer = self._answer_clarify(reason or "Additional graph context requested.", usubjid, cut)
+            entry["status"] = "pending"
+            entry["clarification"] = answer
+            entry["reason"] = reason or "Clarification requested and answered from StudyGraph."
+            self.memory["escalations"][key] = entry
+        else:
+            raise ValueError("decision must be APPROVED, REJECTED, or CLARIFY")
+        self._save_memory()
+        return entry
+
     def run_cycle(self, cut: int, protocol_version: int) -> ReviewReport:
         self.cycle_trace = []
         self.pending_escalations = []
