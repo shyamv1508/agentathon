@@ -73,6 +73,10 @@ def main() -> int:
         results.append(payload)
         print(json.dumps(payload, indent=2, default=str))
 
+    graph_stats = graph.build(12)
+    stats_path = repo_root / "graph_stats.json"
+    stats_path.write_text(json.dumps(graph_stats, indent=2), encoding="utf-8")
+
     output = {
         "module": args.module,
         "data": str(data_dir),
@@ -83,6 +87,7 @@ def main() -> int:
     output_path = repo_root / "stage1_public.json"
     output_path.write_text(json.dumps(output, indent=2, default=str), encoding="utf-8")
     print(f"\nWrote {output_path}")
+    print(f"Wrote {stats_path}")
     return 0
 
 
