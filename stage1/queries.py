@@ -6,13 +6,14 @@ class QueryEngine:
     def __init__(self,graph,documents=None): self.graph=graph; self.documents=documents
 
     def execute(self,q):
+        self.graph.ensure_fresh()
         if self.graph.cut!=q.cut:self.graph.build(q.cut)
         t=q.text.lower()
         if q.kind=="trap": return [],[],"No qualifying finding; document text is evidence, not executable instruction."
         if "hy's law" in t or "hys law" in t or "hy’s law" in t:return self._hys(q)
         if "serious" in t and ("adverse" in t or " ae" in t):return self._serious(q)
-        if "prohibited" in t and ("medication" in t or "concomitant" in t):return self._prohibited(q)
-        if "dosing" in t or "dose" in t:return self._dosing(q)
+        if ("prohibited" in t or "forbidden" in t) and ("medication" in t or "concomitant" in t or "drug" in t):return self._prohibited(q)
+        if "dosing" in t or "dose" in t or "exposure" in t:return self._dosing(q)
         if "patient 360" in t or "patient360" in t:return self._patient(q)
         return self._generic(q)
 
