@@ -5,7 +5,10 @@ DOMAINS=("DM","AE","LB","VS","EX","CM","DS","MH","EG")
 
 class DataStore:
     def __init__(self,data_dir):
-        self.data_dir=data_dir
+        # The harness passes the dataset root (hackathon-data), while the CSVs
+        # live in its data/ subdirectory. Accept either form.
+        nested=os.path.join(data_dir,"data")
+        self.data_dir=nested if os.path.isdir(nested) else data_dir
         self.raw={}; self.corrections=[]; self.cuts=[]; self.refs=[]
         self._load()
 
