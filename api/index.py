@@ -20,6 +20,7 @@ DATA_DIR = ROOT / "hackathon-data"
 _GRAPH = StudyGraph(str(DATA_DIR))
 _ATLAS = Atlas(_GRAPH)
 _STATS = None
+_CREW = None
 
 
 
@@ -38,6 +39,15 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+
+def get_crew():
+    global _CREW
+    if _CREW is None:
+        os.environ.setdefault("STAGE2_MEMORY_PATH", "/tmp/atlas_stage2_memory.json")
+        os.environ.setdefault("STAGE2_TRACE_PATH", "/tmp/atlas_stage2_trace.jsonl")
+        _CREW = ReviewCrew("", "", "", _ATLAS)
+    return _CREW
 
 
 def get_stats():
@@ -75,7 +85,12 @@ def javascript():
 
 @app.get("/api")
 def api_home():
-    return {"status": "ok", "service": "ATLAS"}
+    return {"status": "ok", "service": "ATLAS", "version": "stage2-live"}
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok", "service": "ATLAS", "graph_loaded": _GRAPH.cut is not None}
 
 
 @app.get("/api/stats")
@@ -103,10 +118,7 @@ def cycle(cut: int = 12):
         raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
     protocol = 3 if cut >= 9 else 2 if cut >= 6 else 1
     try:
-        os.environ.setdefault("STAGE2_MEMORY_PATH", "/tmp/atlas_stage2_memory.json")
-        os.environ.setdefault("STAGE2_TRACE_PATH", "/tmp/atlas_stage2_trace.jsonl")
-        crew = ReviewCrew("", "", "", _ATLAS)
-        report = crew.run_cycle(cut, protocol)
+        report = get_crew().run_cycle(cut, protocol)
         return report.model_dump()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -120,8 +132,7 @@ def gate(payload: GateDecision):
         protocol = 3 if payload.cut >= 9 else 2 if payload.cut >= 6 else 1
         if _GRAPH.cut != payload.cut:
             _GRAPH.build(payload.cut)
-        crew = ReviewCrew("", "", "", _ATLAS)
-        result = crew.resolve_human_decision(payload.cut, payload.code, payload.usubjid, payload.decision, payload.reason)
+        result = get_crew().resolve_human_decision(payload.cut, payload.code, payload.usubjid, payload.decision, payload.reason)
         return {"ok": True, "protocol": protocol, "decision": payload.decision.upper(), "escalation": result}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
