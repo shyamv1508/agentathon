@@ -1,50 +1,13 @@
-const $=id=>document.getElementById(id);
-const q=$('question'),cut=$('cut'),ask=$('ask'),result=$('result'),loading=$('loading');
-
-async function loadStats(){
-  try{
-    const r=await fetch('/api/stats');
-    if(!r.ok) throw new Error('Stats request failed');
-    const s=await r.json();
-    $('subjects').textContent=s.subjects ?? '—';
-    $('records').textContent=s.records ?? '—';
-    $('nodes').textContent=s.nodes ?? '—';
-    $('cuts').textContent='12';
-  }catch(_){/* Keep the placeholders if the API is unavailable. */}
-}
-
-async function run(){
-  const text=q.value.trim();
-  if(!text)return q.focus();
-  ask.disabled=true;loading.classList.remove('hidden');result.classList.add('hidden');
-  try{
-    const r=await fetch(`/api/query?q=${encodeURIComponent(text)}&cut=${cut.value}`);
-    const data=await r.json();
-    if(!r.ok)throw new Error(data.detail||data.error||'Request failed');
-    render(data);
-  }catch(e){render({error:e.message})}
-  finally{ask.disabled=false;loading.classList.add('hidden')}
-}
-
-function render(d){
-  result.classList.remove('hidden');
-  if(d.error){
-    $('resultTitle').textContent='Query error';
-    $('answer').innerHTML=`<span>${esc(d.error)}</span>`;
-    $('text').textContent='';
-    $('evidence').innerHTML='';
-    return;
-  }
-  $('resultTitle').textContent=`Verified answer · cut ${cut.value}`;
-  $('confidence').textContent=`Confidence ${(d.confidence*100).toFixed(0)}%`;
-  $('answer').innerHTML=(d.answer||[]).length?d.answer.map(x=>`<span>${esc(x)}</span>`).join(''):'<span>No qualifying result</span>';
-  $('text').textContent=d.text||'';
-  $('evidenceCount').textContent=`${(d.evidence||[]).length} source record(s)`;
-  $('evidence').innerHTML=(d.evidence||[]).map(e=>`<div class="ev"><b>${esc(e.domain||'DOC')}</b> · ${esc(e.usubjid||e.document||'document')}${e.seq!=null?` · seq ${esc(e.seq)}`:''}${e.section?` · ${esc(e.section)}`:''}</div>`).join('')||'<div class="ev">No evidence records</div>';
-}
-
-function esc(x){return String(x).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-ask.addEventListener('click',run);
-q.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))run()});
-document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{q.value=b.dataset.q;run()});
-loadStats();
+const $=id=>document.getElementById(id), q=$('question'),cut=$('cut');
+const traces=['[detect] Scanning active subjects and contradictions…','[medical_review] Reviewing clinical plausibility and baseline context…','[data_manager] Deduplicating record-cited queries…','[compliance] Applying protocol amendment delta…','[human_gate] Escalations ready for medical monitor…','[execute] Cycle state persisted for next cut.'];
+function trace(msg){const t=$('trace');const p=document.createElement('p');p.textContent=msg;t.appendChild(p);t.scrollTop=t.scrollHeight}
+$('cycle').onclick=async()=>{for(let i=0;i<6;i++){document.querySelectorAll('.node').forEach((n,j)=>n.classList.toggle('on',j===i));document.querySelectorAll('.node span')[i].textContent='ACTIVE';trace(traces[i]);await new Promise(r=>setTimeout(r,260))}document.querySelectorAll('.node span').forEach(x=>x.textContent='READY');$('p5').querySelector('span').textContent='COMPLETE';};
+cut.onchange=()=>{const v=+cut.value;$('protocol').textContent=v>=9?'v3':v>=6?'v2':'v1';trace('[system] Data cut '+v+' loaded · protocol '+$('protocol').textContent)};
+$('bell').onclick=$('gate').onclick=()=>{$('modal').classList.remove('hidden')};
+$('close').onclick=()=>{$('modal').classList.add('hidden')};
+$('reject').onclick=()=>{trace('[human_gate] REJECTED SAE_MISCODED → monitoring only');$('pending').textContent='5';$('modal').classList.add('hidden')};
+$('approve').onclick=()=>{trace('[human_gate] APPROVED SAE_MISCODED → execute');$('pending').textContent='5';$('modal').classList.add('hidden')};
+$('clar').onclick=()=>{const c=$('clarify');c.classList.remove('hidden');c.textContent='↻ Fetching context from StudyGraph…';setTimeout(()=>{c.textContent='✓ Context found: screening ALT 239.7 U/L · CM reviewed · clarification ready for resubmission.';trace('[human_gate] CLARIFY → baseline context appended → resubmitted')},700)};
+$('reverse').onclick=()=>{trace('[reverse_lookup] Cellulitis · AESHOSP=Y → linked subjects: 042-S02-004');alert('Cellulitis reverse lookup\n\n042-S02-004 · AE seq 1\nAESHOSP=Y · AESER=N\nResult: SAE_MISCODED')};
+$('report').onclick=()=>alert('ATLAS CYCLE REPORT\n\nFindings: 49\nEscalations: 8\nQueries: 0\nDeviations: 37\nProtocol: '+$('protocol').textContent+'\nCut: '+cut.value);
+document.querySelectorAll('.subject').forEach(x=>x.onclick=()=>{trace('[patient360] Focused '+x.textContent);$('patient').textContent=x.textContent});
