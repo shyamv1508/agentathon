@@ -1,51 +1,11 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ATLAS — Clinical Study Intelligence</title>
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand"><span class="mark">A</span><div><strong>ATLAS</strong><small>Study Intelligence</small></div></div>
-      <div class="status"><span></span> StudyGraph online</div>
-    </header>
-
-    <section class="hero">
-      <div class="eyebrow">CLINICAL STUDY KNOWLEDGE GRAPH</div>
-      <h1>Ask the study.<br><em>Prove the answer.</em></h1>
-      <p>Query subjects, findings, documents and evidence from one time-aware study graph.</p>
-    </section>
-
-    <section class="query-card">
-      <label for="question">Ask ATLAS</label>
-      <textarea id="question" rows="3" placeholder="e.g. Which subjects have serious adverse events at cut 12?"></textarea>
-      <div class="controls">
-        <div class="cut-control"><span>Data cut</span><select id="cut"><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
-        <button id="ask">Run query <span>→</span></button>
-      </div>
-      <div class="suggestions">
-        <button data-q="Which subjects have serious adverse events at cut 12?">Serious AEs</button>
-        <button data-q="Which subjects meet the Hy's Law criteria at cut 12?">Hy's Law</button>
-        <button data-q="Which subjects have prohibited concomitant medication at cut 9?">Prohibited medication</button>
-        <button data-q="Show my patient record">Patient 360</button>
-      </div>
-    </section>
-
-    <section id="loading" class="loading hidden">Building answer from the StudyGraph…</section>
-    <section id="result" class="result hidden">
-      <div class="result-head"><div><span class="eyebrow">ATLAS RESULT</span><h2 id="resultTitle">Verified answer</h2></div><div id="confidence" class="confidence"></div></div>
-      <div id="answer" class="answer"></div>
-      <p id="text" class="result-text"></p>
-      <div class="evidence-head"><span>Evidence</span><span id="evidenceCount"></span></div>
-      <div id="evidence" class="evidence"></div>
-    </section>
-
-    <section class="stats"><div><b id="subjects">—</b><span>Subjects</span></div><div><b id="records">—</b><span>Records</span></div><div><b id="nodes">—</b><span>Graph nodes</span></div><div><b id="cuts">—</b><span>Data cuts</span></div></section>
-    <footer>ATLAS · Evidence-first clinical study analysis</footer>
-  </main>
-  <script src="/app.js"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS Nexus</title><link rel="stylesheet" href="/styles.css"></head>
+<body><div class="app">
+<header class="top"><div class="brand"><div class="logo">A</div><div><b>ATLAS <span>NEXUS</span></b><small>CLINICAL STUDY COMMAND CENTER</small></div></div><div class="cut"><span>● LIVE</span> CUT <select id="cut"><option>12</option><option>9</option><option>6</option><option>3</option><option>1</option></select> · PROTOCOL <strong id="protocol">v3</strong></div><button id="bell" class="bell">⚑ <i id="pending">6</i></button></header>
+<section class="pipeline" id="pipeline"><div class="node on" id="p0"><small>01</small><b>DETECT</b><span>ACTIVE</span></div><div class="node " id="p1"><small>02</small><b>MEDICAL REVIEW</b><span>READY</span></div><div class="node " id="p2"><small>03</small><b>DATA MANAGER</b><span>READY</span></div><div class="node " id="p3"><small>04</small><b>COMPLIANCE</b><span>READY</span></div><div class="node " id="p4"><small>05</small><b>HUMAN GATE</b><span>READY</span></div><div class="node " id="p5"><small>06</small><b>EXECUTE</b><span>READY</span></div><div class="aggregate"><small>AGGREGATE</small><b id="agg">6 ESCALATIONS</b></div></section>
+<main><div class="hud"><div class="hudtitle">ATLAS // AGENT TRACE</div><div id="trace"><p>[detect] Indexed 241 subjects / 26,482 records</p><p>[medical_review] Clinical signals evaluated</p><p>[compliance] Protocol v3 rules active</p><p>[human_gate] 6 escalations awaiting review</p></div><button id="cycle">▶ START AGENT CYCLE</button></div>
+<div class="graph"><div class="graphglow"></div><div class="orbit o1"></div><div class="orbit o2"></div><div class="orbit o3"></div><div class="core">ATLAS<small>PROTOCOL</small></div><div class="site s1">S07</div><div class="site s2">S02</div><div class="site s3">S11</div><div class="site s4">S08</div><div class="subject focused" data-subject="042-S07-001">042-S07-001</div><div class="subject sub2">042-S02-004</div><div class="subject sub3">042-S11-005</div><div class="sat sat1">ALT</div><div class="sat sat2">BILI</div><div class="sat sat3">AE</div><div class="graphlabel">ORBITAL KNOWLEDGE GRAPH <span>• semantic view</span></div></div>
+<aside><div class="asidehead"><div><small>PATIENT 360</small><h2 id="patient">042-S07-001</h2></div><span class="danger">CRITICAL</span></div><div class="subjectmeta">SITE S07 · SCREENING → TREATMENT</div><div class="timeline"><div><b>SCREENING</b><span>Day -7</span></div><div class="active"><b>LAB SPIKE</b><span>ALT 239.7 U/L · BILI 5.38</span></div><div><b>DOSE</b><span>10 mg QD</span></div></div><div class="cards"><div><small>CLINICAL SIGNAL</small><b>Hy's Law candidate</b><p>ALT > 3× ULN and bilirubin > 2× ULN within 14 days.</p></div><div><small>EVIDENCE</small><b>LB · 042-S07-001 · seq 1</b><p>Unit conversion applied: 3.995 µkat/L → 239.7 U/L.</p></div><div><small>MEDICATION</small><b>Concomitant medication</b><p>Protocol v3 prohibited-medication check active.</p></div></div><button id="gate" class="gatebtn">OPEN HUMAN GATE · 6</button><button id="reverse" class="linkbtn">↗ Reverse lookup: Cellulitis</button></aside></main>
+<section class="bottom"><div><b>STUDY GRAPH</b><span>241 subjects</span><span>12 sites</span><span>26,482 records</span><span>12 cuts</span></div><div><b>SITE HEALTH</b><span class="warn">S08 · WARNING</span><span class="bad">S07 · QUARANTINE</span><span class="ok">S01 · COMPLIANT</span></div><button id="report">CYCLE REPORT ↗</button></section></div>
+<div id="modal" class="modal hidden"><div class="modalbox"><div class="mhead"><div><small>HUMAN GATE // ESCALATION 01</small><h2>SAE_MISCODED</h2></div><button id="close">×</button></div><div class="evidencebox"><b>042-S02-004 · AE seq 1</b><p>Cellulitis has AESHOSP=Y but AESER=N. Hospitalisation makes the event serious under protocol.</p><code>AE · 042-S02-004 · seq 1</code></div><div id="clarify" class="clarify hidden">↻ Fetching context from StudyGraph…</div><div class="actions"><button id="reject">REJECT</button><button id="clar">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
+<script src="/app.js"></script></body></html>
