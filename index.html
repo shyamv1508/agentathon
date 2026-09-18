@@ -16,15 +16,15 @@
 <main class="workspace">
 <section class="leftpanel">
   <div class="paneltitle">MISSION CONTROL</div>
-  <div class="metric"><small>ACTIVE SUBJECTS</small><b>241</b><span>12 sites</span></div>
-  <div class="metric"><small>GRAPH RECORDS</small><b>26,482</b><span>12 cuts indexed</span></div>
-  <div class="metric critical"><small>CRITICAL SIGNALS</small><b>6</b><span>awaiting human gate</span></div>
+  <div class="metric"><small>ACTIVE SUBJECTS</small><b id="subjects">—</b><span id="siteCount">loading study graph</span></div>
+  <div class="metric"><small>GRAPH RECORDS</small><b id="records">—</b><span id="cutCount">loading cuts</span></div>
+  <div class="metric critical"><small>CRITICAL SIGNALS</small><b id="critical">—</b><span>live findings at selected cut</span></div>
   <div class="sectionlabel">SITE HEALTH</div>
   <div class="sitehealth"><div><i class="ok"></i><b>S01</b><span>COMPLIANT</span></div><div><i class="warn"></i><b>S08</b><span>WARNING</span></div><div><i class="bad"></i><b>S07</b><span>QUARANTINED</span></div></div>
   <div class="sectionlabel">FOCUS</div>
-  <button class="focus activefocus" data-subject="042-S07-001">042-S07-001 <span>HY'S LAW</span></button>
-  <button class="focus" data-subject="042-S02-004">042-S02-004 <span>SAE</span></button>
-  <button class="focus" data-subject="042-S11-005">042-S11-005 <span>DATA QUERY</span></button>
+  <button class="focus activefocus" data-subject="042-S07-001" data-query="What is the patient360 for 042-S07-001?">042-S07-001 <span>HY'S LAW</span></button>
+  <button class="focus" data-subject="042-S02-004" data-query="What serious adverse event does 042-S02-004 have?">042-S02-004 <span>SAE</span></button>
+  <button class="focus" data-subject="042-S11-005" data-query="What findings are present for 042-S11-005?">042-S11-005 <span>DATA QUERY</span></button>
 </section>
 
 <section class="grapharea">
@@ -35,7 +35,7 @@
     <button class="core node">ATLAS<small>PROTOCOL</small></button>
     <button class="site s1 node">S07</button><button class="site s2 node">S02</button><button class="site s3 node">S11</button><button class="site s4 node">S08</button>
     <button class="subject n1 node" data-subject="042-S07-001">S07-001</button><button class="subject n2 node" data-subject="042-S02-004">S02-004</button><button class="subject n3 node" data-subject="042-S11-005">S11-005</button>
-    <button class="sat a1 node">ALT</button><button class="sat a2 node">BILI</button><button class="sat a3 node">AE</button>
+    <button class="sat a1 node">ALT</button><button class="sat a2 node">BILI</button><button class="sat a3 node" id="aeNode" title="Reverse lookup Cellulitis">AE</button>
     <div class="quarantine">!</div>
   </div>
   <div class="legend"><span><i class="cyan"></i> protocol/site</span><span><i class="amber"></i> deviation</span><span><i class="crimson"></i> critical</span><span><i class="pulse"></i> quarantined</span></div>
@@ -48,15 +48,15 @@
   <div class="timeline"><div><i></i><b>SCREENING</b><small>Day −7 · baseline</small></div><div class="hot"><i></i><b>LAB SPIKE</b><small>ALT 239.7 U/L · BILI 5.38 mg/dL</small></div><div><i></i><b>DOSE</b><small>10 mg QD · EX seq 1</small></div></div>
   <div class="evidencecard"><small>CLINICAL SIGNAL</small><b>Hy's Law candidate</b><p>ALT > 3× ULN and bilirubin > 2× ULN within 14 days.</p></div>
   <div class="evidencecard"><small>EVIDENCE</small><b>LB · 042-S07-001 · seq 1</b><p>3.995 µkat/L converted to 239.7 U/L.</p></div>
-  <div class="evidencecard"><small>MEDICAL CONTEXT</small><b>Protocol v3</b><p>Review baseline labs, concomitant medication and alternative explanations.</p></div>
+  <div class="evidencecard"><small>ATLAS LIVE ANSWER</small><b id="liveAnswerTitle">Select a subject or signal</b><p id="liveAnswer">The panel is connected to StudyGraph. Clicking a focus node runs a real evidence query at the selected cut.</p></div><div class="evidencecard"><small>MEDICAL CONTEXT</small><b id="protocolContext">Protocol v3</b><p id="medicalContext">Evidence is resolved from the active graph cut; no UI value is treated as a source.</p></div>
   <button id="gate" class="gate">OPEN HUMAN GATE <span>6</span></button>
-  <button id="reverse" class="reverse">↗ Reverse lookup · Cellulitis (AESHOSP=Y)</button>
+  <button id="reverse" class="reverse">↗ Reverse lookup · Cellulitis (AESHOSP=Y) → 042-S02-004</button>
 </aside>
 </main>
 
 <div class="terminal"><div class="termhead"><span>ATLAS AGENT // LIVE TRACE</span><span id="termstatus">IDLE</span></div><div id="trace"><p><b>[detect]</b> 241 subjects indexed · 26,482 records visible</p><p><b>[medical_review]</b> Clinical signals separated from data errors</p><p><b>[compliance]</b> Protocol v3 rules loaded</p><p><b>[human_gate]</b> 6 escalations awaiting review</p></div><button id="cycle">▶ START CYCLE</button></div>
 
-<footer class="footer"><span>ATLAS NEXUS</span><span>Evidence-first · source identity preserved</span><button id="report">CYCLE REPORT</button></footer>
+<footer class="footer"><span>ATLAS NEXUS</span><span id="footerStatus">Evidence-first · source identity preserved</span><button id="report">CYCLE REPORT</button></footer>
 </div>
 
 <div id="modal" class="modal hidden"><div class="modalbox"><div class="mhead"><div><small>HUMAN GATE · ESCALATION 01</small><h2>SAE_MISCODED</h2></div><button id="close">×</button></div><div class="record"><b>042-S02-004</b><span>AE · seq 1</span><p>Cellulitis has <strong>AESHOSP=Y</strong> but <strong>AESER=N</strong>. Hospitalisation makes the event serious under the protocol.</p><code>AE · 042-S02-004 · seq 1</code></div><div id="clarify" class="clarify hidden">↻ Fetching context from StudyGraph…</div><div class="actions"><button id="reject">REJECT</button><button id="clar">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
