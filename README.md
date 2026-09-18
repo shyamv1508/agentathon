@@ -1,61 +1,72 @@
 # Study Sentinel — ATLAS
 
+**Members:**  
+Kamalesh G A  
+Ashwinkumar N  
+Rithish Barath  
+Swaminathan V
+
+## Run it
+
+```bash
+pip install -r requirements.txt
+python -m stage1.atlas --data path/to/hackathon-data
+```
+
+These commands run from a clean checkout; replace the data path with the supplied `hackathon-data` directory.
+
 ## How we understood the problem
 
-We treat the study as a time-aware clinical data graph, not as a flat collection of CSVs.  
-Each subject links records across domains through USUBJID and domain sequence numbers.  
-Answers must respect the requested data cut, corrections, protocol version, and laboratory ranges.  
-Documents provide evidence, but document text addressed to an automated reviewer is never an instruction.  
-Every finding must be supported by valid record or document evidence, and genuine empty results must stay empty.
+We treat the study as a time-aware evidence system rather than a collection of independent CSV lookups.  
+The hard part is answering across domains while respecting data cuts, corrections, protocol changes, and laboratory ranges.  
+We chose deterministic rules and indexed records so repeated questions do not repeatedly scan the raw dataset.  
+We treat documents as evidence sources, not executable instructions, including text aimed at automated reviewers.  
+We put external APIs, model-dependent decisions, and a separate UI out of scope.
 
 ## Architecture
 
-1. The harness creates a StudyGraph from the supplied data directory.
-2. DataStore loads domains, reference ranges, corrections, cuts, and normalizes values.
-3. StudyGraph applies the requested cut and builds subject/record indexes.
-4. Atlas receives a validated Question.
-5. QueryEngine routes the question to the relevant clinical/document rule.
-6. Clinical rules evaluate dates, units, reference ranges, protocol version, and findings.
-7. Evidence is built from exact record identity (domain, USUBJID, seq) or named documents.
-8. Evidence is validated against the active graph before returning.
-9. Atlas packages the values, text, evidence, confidence, and usage fields as Answer.
-10. The harness writes the public answer artifact and graph statistics.
+```
+Question -> Atlas -> QueryEngine -> StudyGraph indexes -> clinical/document rules
+                                      -> Evidence validation -> Answer
+Data -> DataStore -> cut/corrections -> StudyGraph
+Documents -> DocumentStore ----------------^
+```
+
+DataStore loads and normalizes CSVs; StudyGraph builds subject/record indexes; Atlas routes questions; QueryEngine applies the relevant rule; the evidence layer validates record identity or document references; Atlas returns the required Answer schema.
 
 ## Tech stack
 
-| Layer | Choice | Why |
+| Layer | What we used | Why this, not the obvious alternative |
 |---|---|---|
-| Language | Python 3 | Simple, fast data processing and easy submission |
-| Validation | Pydantic 2 | Matches the required Question/Answer interface |
-| Data | CSV + Python standard library | Directly matches the supplied study package |
-| Indexing | In-memory dictionaries/lists | Fast repeated subject and record lookups |
-| Documents | Markdown loaded into a document store | Makes protocol/manual/SAP evidence addressable |
-| Clinical logic | Deterministic Python rules | Reproducible answers and no external API dependency |
+| Language | Python 3 | Fast to implement deterministic data rules without deployment overhead. |
+| Data handling | CSV + standard library | Matches the supplied package directly; no database setup or dependency-heavy ETL. |
+| Graph / storage | In-memory dictionaries/lists | Repeated subject/record queries are fast and simpler than introducing a graph database. |
+| Model, if any | None; deterministic rules | Reproducibility and evidence discipline matter more than free-form generation here. |
+| Interface | Pydantic Question/Answer + CLI | Matches the required contract and is easy to run from a clean checkout. |
+| Testing | Local harness + smoke queries | Exercises the real Atlas path and catches schema/evidence failures before submission. |
 
 ## Data handling
 
-Units are interpreted from the reported unit; ALT/AST values reported in µkat/L are converted to U/L before threshold checks. Dates accept the study's common ISO, slash, textual, and compact formats. Numeric parsing preserves qualifiers such as < and <= instead of treating them as equal measurements; blanks, ND, and malformed values become unknown. Missing or malformed rows are skipped safely rather than inventing values. Reference ranges are selected by laboratory and test before comparisons. Data visibility is controlled by cut_available, and corrections are applied at or after their correction cut.
+**Units:** `reference_ranges.csv` supplies laboratory limits. `stage1/ingestion.py` loads them; `stage1/rules.py` applies them. ALT/AST reported in µkat/L are converted to U/L (×60) before threshold checks.
+
+**Dates:** `stage1/normalization.py` accepts ISO, slash-separated, textual month, and compact YYYYMMDD dates. Unrecognised dates become unknown rather than being guessed.
+
+**Non-numeric laboratory values:** `<5` stays a below-detection qualifier, `ND` and empty values become unknown, and `12,4` is parsed as 12.4. They are not zero because the source does not establish a zero measurement.
+
+**Malformed rows:** rows that can still be safely represented are kept; missing/invalid values are treated as unknown and skipped by rules that require a valid value. We do not invent replacements.
 
 ## Documents
 
-Protocol versions, laboratory manuals, and the SAP are loaded as evidence sources. The active protocol/manual is selected from the requested cut where applicable. A document can support an answer, but it cannot execute commands. If a document contains text directed at an automated reviewer, we report or cite the relevant document evidence when useful and ignore the instruction itself.
+`protocol_v1/v2/v3.md`, the laboratory manuals, and `sap.md` are loaded by `stage1/documents.py` and used as document evidence. Protocol version is selected from the cut; laboratory/manual and SAP content can support answers. A sentence addressed to an automated reviewer is treated as untrusted document text: it may be cited as evidence, but it never changes data, rules, or execution.
 
 ## When the answer is nothing
 
-The agent returns an empty answer when the indexed data does not satisfy the requested condition at the requested cut. It does not convert unknown values into positive findings and does not fabricate evidence. For trap-style questions, a genuine absence is represented by [] with no invented record references.
+The agent returns `[]` when no record satisfies the requested condition at the active cut, and it keeps evidence empty when there is no valid supporting record. Unknown values are not promoted to findings, and evidence is never fabricated.
+
+## Graph
+
+Records are indexed as domain/subject/sequence identities, with subjects linking their domain records. The graph preserves cut-aware visibility and cross-domain lookup so rules can reason over a subject without repeatedly joining raw tables. Build statistics are recorded in `graph_stats.json`.
 
 ## What we know is weak
 
-The public package does not expose the hidden evaluation questions, so our local smoke run cannot establish hidden-test accuracy. Document questions are intentionally handled conservatively because wording can vary. Hy's Law is also a sensitive rule: numeric thresholds, laboratory-specific reference ranges, timing, and alternative explanations all affect the final determination, so this area deserves additional hidden-test validation.
-
-## Before you submit
-
-- [ ] Repository URL provided
-- [ ] graph_stats.json committed
-- [ ] stage1_public.json committed from the public-question run
-- [ ] 2 screenshots and a 60-second screen recording attached/linked
-- [ ] python starter/run_local_harness.py --module stage1.atlas --data hackathon-data runs clean from repository root
-- [ ] requirements.txt is complete for a fresh environment
-- [ ] No API keys or .env files are committed
-- [ ] No practice subject IDs, site numbers, or counts are hard-coded
-- [ ] 8 or more commits are spread across the day
+The hidden evaluation questions are not exposed in the public package, so local tests cannot prove hidden-test accuracy. Document-question wording may vary, so those queries are intentionally conservative. Hy's Law remains the most sensitive rule because timing, laboratory-specific ranges, and alternative explanations can affect the determination; this needs further hidden-test validation.
