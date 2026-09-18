@@ -48,8 +48,37 @@ class QueryEngine:
         for d,name in [("LB","lab"),("AE","adverse"),("VS","vital"),("EX","exposure"),("CM","medication"),("DM","demographic"),("DS","disposition"),("MH","medical history"),("EG","ecg")]:
             if name in t: domain=d;break
         rows=self.graph.rows.get(domain or "DM",[])
-        m=re.search(r"(042-[A-Z0-9]+-\d+)",q.text.upper())
-        if m: rows=[r for r in rows if r.get("USUBJID")==m.group(1)]
+
+        m=re.search(r"(\d{3}-S\d{2}-\d{3})",q.text.upper())
+        if m:
+            rows=[r for r in rows if str(r.get("USUBJID","")).upper()==m.group(1)]
+        else:
+            sm=re.search(r"\bS(\d{1,2})\b",q.text.upper())
+            if sm:
+                site=f"S{int(sm.group(1)):02d}"
+                rows=[r for r in rows if str(r.get("USUBJID","")).split("-")[1].upper()==site]
+
+        wm=re.search(r"(?:WEEK\s*)(\d+)",q.text.upper())
+        if wm:
+            week=wm.group(1)
+            rows=[r for r in rows if week in str(r.get("VISIT","")).upper()]
+        else:
+            vm=re.search(r"VISIT\s*[=:]?\s*([A-Z0-9_-]+)",q.text.upper())
+            if vm:
+                visit=vm.group(1)
+                rows=[r for r in rows if str(r.get("VISIT","")).upper()==visit]
+
+        if domain=="LB":
+            tm=re.search(r"\b(ALT|AST|BILI|HBA1C|GLUC|CREAT)\b",q.text.upper())
+            if tm:
+                rows=[r for r in rows if str(r.get("LBTESTCD","")).upper()==tm.group(1)]
+
+        if q.kind=="lookup":
+            record_values=[f"{r.get('_domain')}|{r.get('USUBJID')}|{r.get('_seq')}" for r in rows]
+            return record_values,refs(rows),f"{len(record_values)} matching records."
         ids=sorted({r.get("USUBJID") for r in rows if r.get("USUBJID")})
-        if "count" in t or "how many" in t:return [str(len(ids))],refs(rows),f"{len(ids)} subjects match the query."
+        if "count" in t or "how many" in t:
+            value=len(rows) if ("record" in t or "rows" in t) else len(ids)
+            label="records" if ("record" in t or "rows" in t) else "subjects"
+            return [str(value)],refs(rows),f"{value} matching {label}."
         return ids,refs(rows),f"Matching subjects: {', '.join(ids) if ids else 'none'}"
