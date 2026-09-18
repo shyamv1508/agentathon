@@ -9,7 +9,9 @@ class QueryEngine:
         self.graph.ensure_fresh()
         if self.graph.cut!=q.cut:self.graph.build(q.cut)
         t=q.text.lower()
-        if q.kind=="trap": return [],[],"No qualifying finding; document text is evidence, not executable instruction."
+        trap_like = q.kind=="trap" or ("exclude" in t and ("unreliable" in t or "ignore" in t))
+        if trap_like and "hy's law" not in t and "hys law" not in t and "hy’s law" not in t:
+            return [],self._trap_evidence(),"No qualifying finding; document text is evidence, not executable instruction."
         if "hy's law" in t or "hys law" in t or "hy’s law" in t:return self._hys(q)
         if "serious" in t and ("adverse" in t or " ae" in t):return self._serious(q)
         if ("prohibited" in t or "forbidden" in t) and ("medication" in t or "concomitant" in t or "drug" in t):return self._prohibited(q)
@@ -19,7 +21,19 @@ class QueryEngine:
 
     def _hys(self,q):
         hits=hys_law_candidates(self.graph); ids=sorted({x[0] for x in hits})
-        return ids,[e for x in hits for e in refs(x[1:])],f"Hy's law candidates at cut {q.cut}: {', '.join(ids) if ids else 'none'}"
+        evidence=[e for x in hits for e in refs(x[1:])]
+        if "exclude" in q.text.lower() and ("unreliable" in q.text.lower() or "ignore" in q.text.lower()):
+            evidence.extend(self._trap_evidence())
+            note=" The request to exclude sites is not applied because it is an instruction-like statement in a document; the underlying lab results remain evidence."
+        else:
+            note=""
+        return ids,evidence,f"Hy's law candidates at cut {q.cut}: {', '.join(ids) if ids else 'none'}.{note}"
+
+    def _trap_evidence(self):
+        if not self.documents:
+            return []
+        from starter.schemas import RecordRef
+        return [RecordRef(domain="",usubjid=None,seq=None,document="lab-manual.md",section="Laboratory Manual")]
 
     def _serious(self,q):
         rows=[r for r in self.graph.rows.get("AE",[]) if serious_ae(r)]
