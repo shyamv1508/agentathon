@@ -21,7 +21,7 @@ We treat the study as a time-aware evidence system rather than a collection of i
 The hard part is answering across domains while respecting data cuts, corrections, protocol changes, and laboratory ranges.  
 We chose deterministic rules and indexed records so repeated questions do not repeatedly scan the raw dataset.  
 We treat documents as evidence sources, not executable instructions, including text aimed at automated reviewers.  
-We put external APIs, model-dependent decisions, and a separate UI out of scope.
+We keep the core answer path deterministic; Stage 2 adds the required monitor workflow, while a lightweight static UI exposes Stage 1 through a Python API.
 
 ## Architecture
 
@@ -34,7 +34,7 @@ Documents -> DocumentStore ----------------^
 
 DataStore loads and normalizes CSVs; StudyGraph builds subject/record indexes; Atlas routes questions; QueryEngine applies the relevant rule; the evidence layer validates record identity or document references; Atlas returns the required Answer schema.
 
-## Tech stack
+## Stage 2 monitor\n\n`stage2/crew.py` implements the six-node MONITOR flow: detect, medical review, data manager, compliance, human gate, and execute. Persistent memory prevents duplicate queries/escalations; CLARIFY is answered from StudyGraph and resubmitted; REJECTED actions remain monitoring with their reason. Run `python -m stage2 --data hackathon-data --cut 6 --protocol 2`. The unified regression suite is `python -m stage2.test_all`.\n\n## Web UI\n\nThe root `index.html` is a lightweight evidence-first UI. `api/index.py` exposes the Atlas query endpoint and graph statistics, with the graph cached per serverless process. It can be deployed as a static frontend plus Python function on Vercel; no API key is required.\n\n## Tech stack
 
 | Layer | What we used | Why this, not the obvious alternative |
 |---|---|---|
