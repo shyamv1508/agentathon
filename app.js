@@ -17,6 +17,15 @@ function escapeHtml(v){
   return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
 function protocolFor(v){return v>=9?'v3':v>=6?'v2':'v1';}
+async function loadCut(v){
+  const r=await fetch('/api/stats?cut='+v); const s=await r.json();
+  $('subjects').textContent=s.subjects??'—'; $('records').textContent=s.records??'—';
+  $('siteCount').textContent=(s.sites??12)+' sites'; $('cutCount').textContent=(s.cuts??12)+' cuts indexed';
+  $('protocol').textContent=protocolFor(v); $('protocolContext').textContent='Protocol '+protocolFor(v);
+  $('critical').textContent=s.critical??'—';
+  $('pending').textContent=s.pending??'—';
+  trace('<b>[system]</b> Data cut '+v+' loaded · '+(s.records??0)+' visible records · protocol '+protocolFor(v));
+}
 async function apiQuery(text){
   const r=await fetch('/api/query?q='+encodeURIComponent(text)+'&cut='+cut.value);
   const data=await r.json();
@@ -52,17 +61,7 @@ async function focusSubject(button){
     trace('<b>[error]</b> '+escapeHtml(e.message));
   }finally{button.classList.remove('busy')}
 }
-async function loadStats(){
-  try{
-    const s=await (await fetch('/api/stats')).json();
-    $('subjects').textContent=s.subjects??'—';
-    $('records').textContent=s.records??'—';
-    $('siteCount').textContent=(s.sites??12)+' sites';
-    $('cutCount').textContent=(s.cuts??12)+' cuts indexed';
-    $('critical').textContent='6';
-    trace('<b>[system]</b> StudyGraph ready · '+s.subjects+' subjects · '+s.records+' visible records');
-  }catch(e){trace('<b>[error]</b> StudyGraph stats unavailable')}
-}
+async function loadStats(){try{await loadCut(+cut.value)}catch(e){trace('<b>[error]</b> StudyGraph stats unavailable')}}
 $('cycle').onclick=async()=>{
   $('termstatus').textContent='RUNNING';
   for(let i=0;i<traces.length;i++){
@@ -76,14 +75,9 @@ $('cycle').onclick=async()=>{
   $('p5').classList.add('active'); $('p5').querySelector('em').textContent='COMPLETE';
   $('termstatus').textContent='IDLE';
 };
-cut.onchange=()=>{
-  const v=+cut.value;
-  const p=protocolFor(v);
-  $('protocol').textContent=p;
-  $('protocolContext').textContent='Protocol '+p;
-  trace('<b>[system]</b> Data cut '+v+' loaded · protocol '+p);
-  document.querySelectorAll('.subject').forEach(x=>x.classList.remove('selected'));
-  $('graph').classList.remove('focused');
+cut.onchange=async()=>{
+  const v=+cut.value; document.querySelectorAll('.subject').forEach(x=>x.classList.remove('selected')); $('graph').classList.remove('focused');
+  try{await loadCut(v)}catch(e){trace('<b>[error]</b> '+escapeHtml(e.message))}
 };
 $('bell').onclick=$('gate').onclick=()=>{$('modal').classList.remove('hidden')};
 $('close').onclick=()=>{$('modal').classList.add('hidden')};
