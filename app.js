@@ -3,7 +3,7 @@ const q=$('question'),cut=$('cut'),ask=$('ask'),result=$('result'),loading=$('lo
 
 async function loadStats(){
   try{
-    const r=await fetch('/api?stats=1');
+    const r=await fetch('/api/stats');
     if(!r.ok) throw new Error('Stats request failed');
     const s=await r.json();
     $('subjects').textContent=s.subjects ?? '—';
@@ -18,9 +18,9 @@ async function run(){
   if(!text)return q.focus();
   ask.disabled=true;loading.classList.remove('hidden');result.classList.add('hidden');
   try{
-    const r=await fetch(`/api?q=${encodeURIComponent(text)}&cut=${cut.value}`);
+    const r=await fetch(`/api/query?q=${encodeURIComponent(text)}&cut=${cut.value}`);
     const data=await r.json();
-    if(!r.ok)throw new Error(data.error||'Request failed');
+    if(!r.ok)throw new Error(data.detail||data.error||'Request failed');
     render(data);
   }catch(e){render({error:e.message})}
   finally{ask.disabled=false;loading.classList.add('hidden')}
