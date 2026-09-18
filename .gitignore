@@ -4,3 +4,6 @@ __pycache__/
 venv/
 .env
 .pytest_cache/
+stage2_memory.json
+stage2_trace.jsonl
+stage2_report.json
