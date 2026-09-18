@@ -91,14 +91,29 @@ cut.onchange=async()=>{
 $('bell').onclick=$('gate').onclick=()=>{$('modal').classList.remove('hidden')};
 $('close').onclick=()=>{$('modal').classList.add('hidden')};
 $('queryClose').onclick=()=>{$('queryModal').classList.add('hidden');$('graph').classList.remove('focused')};
-$('reject').onclick=()=>{trace('<b>[human_gate]</b> REJECTED SAE_MISCODED → monitoring only');$('pending').textContent=Math.max(0,+$('pending').textContent-1);$('modal').classList.add('hidden')};
-$('approve').onclick=()=>{trace('<b>[human_gate]</b> APPROVED SAE_MISCODED → execute');$('pending').textContent=Math.max(0,+$('pending').textContent-1);$('modal').classList.add('hidden')};
+async function gateDecision(decision, reason=''){
+  try{
+    const r=await fetch('/api/gate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cut:+cut.value,code:'SAE_MISCODED',usubjid:'042-S02-004',decision,reason})
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.detail||'Gate decision failed');
+    const status=data.escalation?.status||decision.toLowerCase();
+    $('pending').textContent=Math.max(0,(+$('pending').textContent||0)-(status==='pending'?0:1));
+    trace('<b>[human_gate]</b> '+decision+' SAE_MISCODED → '+status);
+    return data;
+  }catch(e){trace('<b>[error]</b> '+escapeHtml(e.message)); throw e}
+}
+$('reject').onclick=async()=>{try{await gateDecision('REJECTED');$('modal').classList.add('hidden')}catch{}};
+$('approve').onclick=async()=>{try{await gateDecision('APPROVED');$('modal').classList.add('hidden')}catch{}};
 $('clar').onclick=async()=>{
   const c=$('clarify'); c.classList.remove('hidden'); c.textContent='↻ Fetching context from StudyGraph…';
   try{
-    const d=await apiQuery('What is the patient360 for 042-S07-001?');
-    c.textContent='✓ Context found: '+((d.answer||[]).join(' · ')||d.text||'evidence loaded')+' · clarification ready for resubmission.';
-    trace('<b>[human_gate]</b> CLARIFY → graph context fetched → resubmitted');
+    const data=await gateDecision('CLARIFY','Medical monitor requested additional graph context.');
+    const d=await apiQuery('What is the patient360 for 042-S02-004?');
+    c.textContent='✓ Context found: '+((d.answer||[]).join(' · ')||d.text||'evidence loaded')+' · clarification recorded for resubmission.';
   }catch(e){c.textContent='✕ Context lookup failed: '+e.message}
 };
 $('reverse').onclick=async()=>{
