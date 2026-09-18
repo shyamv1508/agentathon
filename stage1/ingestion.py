@@ -13,9 +13,12 @@ class DataStore:
         self._load()
 
     def _load(self):
+        rp=os.path.join(self.data_dir,"reference_ranges.csv")
+        self.refs=csv_rows(rp) if os.path.exists(rp) else []
         for r in self.refs:
             key=(str(r.get("LAB","")).strip().upper(),str(r.get("LBTESTCD","")).strip().upper())
             self.reference_ranges[key]=r
+
         for d in DOMAINS:
             p=os.path.join(self.data_dir,d+".csv")
             self.raw[d]=[norm_domain_row(d,r) for r in csv_rows(p)] if os.path.exists(p) else []
@@ -23,8 +26,6 @@ class DataStore:
         self.corrections=csv_rows(cp) if os.path.exists(cp) else []
         cutp=os.path.join(self.data_dir,"cuts.csv")
         self.cuts=csv_rows(cutp) if os.path.exists(cutp) else []
-        rp=os.path.join(self.data_dir,"reference_ranges.csv")
-        self.refs=csv_rows(rp) if os.path.exists(rp) else []
 
     def rows(self,cut):
         corr={}
