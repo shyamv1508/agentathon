@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -19,6 +20,15 @@ DATA_DIR = ROOT / "hackathon-data"
 _GRAPH = StudyGraph(str(DATA_DIR))
 _ATLAS = Atlas(_GRAPH)
 _STATS = None
+
+
+
+class GateDecision(BaseModel):
+    cut: int
+    code: str
+    usubjid: str | None = None
+    decision: str
+    reason: str = ""
 
 app = FastAPI(title="ATLAS API")
 
@@ -98,5 +108,22 @@ def cycle(cut: int = 12):
         crew = ReviewCrew("", "", "", _ATLAS)
         report = crew.run_cycle(cut, protocol)
         return report.model_dump()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/api/gate")
+def gate(payload: GateDecision):
+    if payload.cut < 1 or payload.cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    try:
+        protocol = 3 if payload.cut >= 9 else 2 if payload.cut >= 6 else 1
+        if _GRAPH.cut != payload.cut:
+            _GRAPH.build(payload.cut)
+        crew = ReviewCrew("", "", "", _ATLAS)
+        result = crew.resolve_human_decision(payload.cut, payload.code, payload.usubjid, payload.decision, payload.reason)
+        return {"ok": True, "protocol": protocol, "decision": payload.decision.upper(), "escalation": result}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
