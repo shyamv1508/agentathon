@@ -9,10 +9,13 @@ class DataStore:
         # live in its data/ subdirectory. Accept either form.
         nested=os.path.join(data_dir,"data")
         self.data_dir=nested if os.path.isdir(nested) else data_dir
-        self.raw={}; self.corrections=[]; self.cuts=[]; self.refs=[]
+        self.raw={}; self.corrections=[]; self.cuts=[]; self.refs=[]; self.reference_ranges={}
         self._load()
 
     def _load(self):
+        for r in self.refs:
+            key=(str(r.get("LAB","")).strip().upper(),str(r.get("LBTESTCD","")).strip().upper())
+            self.reference_ranges[key]=r
         for d in DOMAINS:
             p=os.path.join(self.data_dir,d+".csv")
             self.raw[d]=[norm_domain_row(d,r) for r in csv_rows(p)] if os.path.exists(p) else []
