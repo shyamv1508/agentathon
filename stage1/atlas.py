@@ -38,8 +38,18 @@ def main():
     p.add_argument("--cut", type=int, default=12)
     p.add_argument("--question")
     a = p.parse_args()
+
     atlas = Atlas(StudyGraph(a.data))
-    atlas.graph.build(a.cut)
+    stats = atlas.graph.build(a.cut)
+
+    print("ATLAS StudyGraph")
+    print(f"Cut: {stats['cut']}")
+    print(f"Subjects: {stats['subjects']}")
+    print(f"Records: {stats['records']}")
+    print(f"Nodes: {stats['nodes']}")
+    print(f"Edges: {stats['edges']}")
+    print(f"Build time: {stats['build_time_ms']} ms")
+
     if a.question:
         question = Question(question_id="cli", kind="lookup", text=a.question, cut=a.cut)
         print(atlas.answer(question).model_dump_json(indent=2))
