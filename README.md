@@ -10,10 +10,10 @@ Swaminathan V
 
 ```bash
 pip install -r requirements.txt
-python -m stage1.atlas --data path/to/hackathon-data
+python -m stage1.atlas --data hackathon-data
 ```
 
-These commands run from a clean checkout; replace the data path with the supplied `hackathon-data` directory.
+These commands run from a clean checkout with the supplied `hackathon-data` directory at the repository root. The module command prints the graph build summary; add `--question "..."` to print an Answer JSON.
 
 ## How we understood the problem
 
