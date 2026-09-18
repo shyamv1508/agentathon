@@ -71,7 +71,8 @@ def stage1_harness():
 
 def cut6_and_cut9():
     atlas = Atlas(StudyGraph("hackathon-data"))
-    crew = isolated_crew(atlas)\n    report6 = crew.run_cycle(6, 2)
+    crew = isolated_crew(atlas)
+    report6 = crew.run_cycle(6, 2)
     assert report6.cut == 6 and report6.protocol_version == 2
     assert report6.stats["findings"] == 41
     assert any(a["code"] == "SAE_MISCODED" and a["usubjid"] == "042-S02-004"
