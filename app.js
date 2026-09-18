@@ -64,16 +64,25 @@ async function focusSubject(button){
 async function loadStats(){try{await loadCut(+cut.value)}catch(e){trace('<b>[error]</b> StudyGraph stats unavailable')}}
 $('cycle').onclick=async()=>{
   $('termstatus').textContent='RUNNING';
-  for(let i=0;i<traces.length;i++){
-    document.querySelectorAll('.pnode').forEach((n,j)=>n.classList.toggle('active',j===i));
-    document.querySelectorAll('.pnode em').forEach((x,j)=>x.textContent=j===i?'ACTIVE':j<i?'DONE':'READY');
-    trace('<b>['+traces[i][0]+']</b> '+traces[i][1]);
-    await new Promise(r=>setTimeout(r,360));
-  }
-  document.querySelectorAll('.pnode em').forEach(x=>x.textContent='READY');
-  document.querySelectorAll('.pnode').forEach(x=>x.classList.remove('active'));
-  $('p5').classList.add('active'); $('p5').querySelector('em').textContent='COMPLETE';
-  $('termstatus').textContent='IDLE';
+  $('cycle').disabled=true;
+  try{
+    const r=await fetch('/api/cycle?cut='+cut.value); const data=await r.json();
+    if(!r.ok) throw new Error(data.detail||'Cycle failed');
+    const names=['detect','medical_review','data_manager','compliance','human_gate','execute'];
+    for(let i=0;i<names.length;i++){
+      const node=document.querySelectorAll('.pnode')[i];
+      document.querySelectorAll('.pnode').forEach((n,j)=>n.classList.toggle('active',j===i));
+      document.querySelectorAll('.pnode em').forEach((x,j)=>x.textContent=j===i?'ACTIVE':j<i?'DONE':'READY');
+      const entry=(data.trace||[]).find(x=>x.node===names[i]);
+      trace('<b>['+names[i]+']</b> '+escapeHtml(entry?.decision||traces[i][1]));
+      await new Promise(r=>setTimeout(r,180));
+    }
+    $('pending').textContent=data.stats?.pending_escalations??data.pending_escalations?.length??0;
+    $('critical').textContent=data.stats?.escalations??'0';
+    $('footerStatus').textContent=(data.stats?.findings??0)+' findings · '+(data.stats?.escalations??0)+' escalations · cut '+cut.value;
+    $('p5').classList.add('active'); $('p5').querySelector('em').textContent='COMPLETE';
+  }catch(e){ trace('<b>[error]</b> '+escapeHtml(e.message)); }
+  finally{$('termstatus').textContent='IDLE'; $('cycle').disabled=false;}
 };
 cut.onchange=async()=>{
   const v=+cut.value; document.querySelectorAll('.subject').forEach(x=>x.classList.remove('selected')); $('graph').classList.remove('focused');
