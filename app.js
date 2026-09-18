@@ -17,8 +17,17 @@ function escapeHtml(v){
   return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
 function protocolFor(v){return v>=9?'v3':v>=6?'v2':'v1';}
+async function apiFetch(url, options){
+  const r=await fetch(url, options);
+  const raw=await r.text();
+  let data={};
+  try{data=raw?JSON.parse(raw):{}}catch{throw new Error('API returned an invalid response ('+r.status+')');}
+  if(!r.ok) throw new Error(data.detail||data.message||('API request failed ('+r.status+')'));
+  return data;
+}
+
 async function loadCut(v){
-  const r=await fetch('/api/stats?cut='+v); const s=await r.json();
+  const s=await apiFetch('/api/stats?cut='+v);
   $('subjects').textContent=s.subjects??'—'; $('records').textContent=s.records??'—';
   $('siteCount').textContent=(s.sites??12)+' sites'; $('cutCount').textContent=(s.cuts??12)+' cuts indexed';
   $('protocol').textContent=protocolFor(v); $('protocolContext').textContent='Protocol '+protocolFor(v);
@@ -27,10 +36,7 @@ async function loadCut(v){
   trace('<b>[system]</b> Data cut '+v+' loaded · '+(s.records??0)+' visible records · protocol '+protocolFor(v));
 }
 async function apiQuery(text){
-  const r=await fetch('/api/query?q='+encodeURIComponent(text)+'&cut='+cut.value);
-  const data=await r.json();
-  if(!r.ok) throw new Error(data.detail||'Query failed');
-  return data;
+  return await apiFetch('/api/query?q='+encodeURIComponent(text)+'&cut='+cut.value);
 }
 function renderAnswer(data){
   $('liveAnswerTitle').textContent=(data.answer||[]).length?data.answer.join(' · '):'No qualifying result';
@@ -66,8 +72,7 @@ $('cycle').onclick=async()=>{
   $('termstatus').textContent='RUNNING';
   $('cycle').disabled=true;
   try{
-    const r=await fetch('/api/cycle?cut='+cut.value); const data=await r.json();
-    if(!r.ok) throw new Error(data.detail||'Cycle failed');
+    const data=await apiFetch('/api/cycle?cut='+cut.value);
     const names=['detect','medical_review','data_manager','compliance','human_gate','execute'];
     for(let i=0;i<names.length;i++){
       const node=document.querySelectorAll('.pnode')[i];
@@ -93,13 +98,11 @@ $('close').onclick=()=>{$('modal').classList.add('hidden')};
 $('queryClose').onclick=()=>{$('queryModal').classList.add('hidden');$('graph').classList.remove('focused')};
 async function gateDecision(decision, reason=''){
   try{
-    const r=await fetch('/api/gate',{
+    const data=await apiFetch('/api/gate',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({cut:+cut.value,code:'SAE_MISCODED',usubjid:'042-S02-004',decision,reason})
     });
-    const data=await r.json();
-    if(!r.ok) throw new Error(data.detail||'Gate decision failed');
     const status=data.escalation?.status||decision.toLowerCase();
     $('pending').textContent=Math.max(0,(+$('pending').textContent||0)-(status==='pending'?0:1));
     trace('<b>[human_gate]</b> '+decision+' SAE_MISCODED → '+status);
