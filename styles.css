@@ -633,3 +633,9 @@ background-size:42px 42px;mask-image:radial-gradient(circle at center,#000 15%,t
  .atlas-console .s1{left:22%!important}.atlas-console .s2{left:82%!important}.atlas-console .s3{left:82%!important}.atlas-console .s4{left:22%!important}
  .atlas-console .n1{left:34%!important}.atlas-console .n2{left:66%!important}
 }
+
+/* center console viewport alignment fix */
+.atlas-console{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;transform:none!important}
+.atlas-console .graphgrid{inset:0!important}
+.atlas-console .console-insight{bottom:24px!important}
+.atlas-console .console-label{top:20px!important}
