@@ -165,7 +165,7 @@ class ReviewCrew:
                 code = "SAE_MISCODED" if hosp and not aeser else "SERIOUS_AE"
                 rationale = (
                     f"{row.get('AETERM', 'Adverse event')} has AESHOSP=Y but AESER=N; "
-                    "hospitalisation makes the event serious under the protocol."
+                    "AESHOSP=Y indicates hospitalization, which meets the protocol’s serious-event criterion; AESER is incorrectly recorded as N."
                     if code == "SAE_MISCODED"
                     else f"{row.get('AETERM', 'Adverse event')} meets the serious AE definition."
                 )
