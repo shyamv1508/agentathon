@@ -33,6 +33,18 @@ class GateDecision(BaseModel):
 
 app = FastAPI(title="ATLAS API")
 
+_WATCH = None
+_WATCH_REPORT = None
+
+
+def get_watch():
+    global _WATCH
+    if _WATCH is None:
+        from stage3.watch import StudyWatch
+        _WATCH = StudyWatch(str(DATA_DIR), get_crew())
+    return _WATCH
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -172,6 +184,29 @@ def escalations(cut: int = 12):
             pending.append(entry)
     pending.sort(key=lambda x: (x.get("cut", 0), x.get("code", ""), x.get("usubjid") or ""))
     return {"cut": cut, "escalations": pending, "count": len(pending)}
+
+
+@app.get("/api/watch")
+def watch(cut_start: int = 1, cut_end: int = 12, budget_seconds: float = 180):
+    global _WATCH_REPORT
+    if cut_start < 1 or cut_end > 12 or cut_start > cut_end:
+        raise HTTPException(status_code=400, detail="cut range must be between 1 and 12")
+    try:
+        watcher = get_watch()
+        _WATCH_REPORT = watcher.run_period(range(cut_start, cut_end + 1), budget_seconds=budget_seconds)
+        return _WATCH_REPORT.model_dump()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/watch/explain/{decision_id}")
+def watch_explain(decision_id: str):
+    try:
+        return get_watch().explain(decision_id).model_dump()
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Decision not found")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/cycle")
