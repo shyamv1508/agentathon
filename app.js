@@ -125,6 +125,7 @@ async function reverseLookup(type, value) {
     document.querySelectorAll('.subjectlookup').forEach(btn => {
       btn.addEventListener('click', async () => {
         closeModal('queryModal');
+      closeModal('watchModal');
         await focusSubject(btn.dataset.subject, 'What is the patient360 for ' + btn.dataset.subject + '?', btn.dataset.subject);
       });
     });
@@ -532,6 +533,85 @@ function setupNodeHoverPreview() {
   });
 }
 
+
+let watchReport = null;
+
+function renderWatchSummary(report) {
+  const stats = report?.cuts || [];
+  const signals = report?.signals?.length || 0;
+  const deviations = report?.deviations?.length || 0;
+  const adversarial = report?.adversarial_events?.length || 0;
+  const openItems = report?.open_items?.length || 0;
+  safeText('watchSignals', signals);
+  safeText('watchDeviations', deviations);
+  safeText('watchAdversarial', adversarial);
+  safeText('watchOpen', openItems);
+  safeText('watchBudget', report?.budget?.final_tier || 'normal');
+  safeHtml('watchCuts', stats.length ? stats.map(x => {
+    const s=x.stats||{};
+    return '<div class="watchcut"><b>CUT '+escapeHtml(x.cut)+'</b><span>P'+escapeHtml(x.protocol_version)+'</span><em>'+escapeHtml(s.escalations ?? 0)+' escalations</em></div>';
+  }).join('') : '<span class="termempty">No surveillance cuts returned.</span>');
+  const decisions = Object.keys(getWatchDecisions(report));
+  safeHtml('watchDecisions', decisions.length ? decisions.map(id =>
+    '<button class="decisionchip" data-decision="'+escapeHtml(id)+'">'+escapeHtml(id)+'</button>'
+  ).join('') : '<span class="termempty">No explainable decisions in this run.</span>');
+  document.querySelectorAll('.decisionchip').forEach(btn => btn.addEventListener('click', () => explainWatch(btn.dataset.decision)));
+}
+
+function getWatchDecisions(report) {
+  const out = {};
+  (report?.open_items || []).forEach((x,i) => {
+    if (x?.decision_id) out[x.decision_id]=x;
+  });
+  return out;
+}
+
+async function runWatch() {
+  const button=el('watchRun');
+  if(button){button.disabled=true;button.textContent='● RUNNING 12 CUTS…';}
+  safeText('watchStatus','RUNNING');
+  safeHtml('watchCuts','<span class="termempty">Processing cuts 1 → 12…</span>');
+  try {
+    watchReport=await apiFetch('/api/watch?cut_start=1&cut_end=12&budget_seconds=180');
+    renderWatchSummary(watchReport);
+    const decisions=watchReport?.open_items||[];
+    safeText('watchStatus','COMPLETE');
+    safeText('watchMessage',
+      'WATCH completed all '+(watchReport?.cuts?.length||0)+' cuts. Decisions remain trace-backed and safety-first.');
+    trace('<b>[watch]</b> 12-cut surveillance complete · '+(watchReport?.adversarial_events?.length||0)+' adversarial events · '+(watchReport?.deviations?.length||0)+' deviations');
+    if(button){button.textContent='✓ WATCH COMPLETE';button.classList.add('done');}
+  } catch(error) {
+    safeText('watchStatus','ERROR');
+    safeText('watchMessage',error.message);
+    trace('<b>[watch error]</b> '+escapeHtml(error.message));
+  } finally {
+    if(button)setTimeout(()=>{button.disabled=false;button.textContent='▶ RUN 12-CUT WATCH';button.classList.remove('done');},2200);
+  }
+}
+
+async function explainWatch(decisionId) {
+  openModal('watchModal');
+  safeText('watchExplainId',decisionId);
+  safeText('watchExplainWhat','Reading original decision trace…');
+  safeText('watchExplainWhy','—');
+  safeText('watchExplainTrace','Checking evidence identity…');
+  safeHtml('watchExplainEvidence','Loading…');
+  try {
+    const d=await apiFetch('/api/watch/explain/'+encodeURIComponent(decisionId));
+    safeText('watchExplainWhat',d.what||'—');
+    safeText('watchExplainWhy',d.why||'—');
+    safeText('watchExplainTrace',d.consistent_with_trace ? '✓ Evidence matches original human-gate trace' : '⚠ Evidence mismatch — inspect trace');
+    safeHtml('watchExplainEvidence',(d.evidence||[]).map(e =>
+      '<div class="evidence-row"><b>'+escapeHtml(e.domain||'RECORD')+'</b><span>'+escapeHtml([e.usubjid,e.seq!=null?'seq '+e.seq:'',e.document,e.section].filter(Boolean).join(' · '))+'</span></div>'
+    ).join('')||'No evidence.');
+    const alt=(d.alternatives||[]).map(x=>'<li>'+escapeHtml(x)+'</li>').join('');
+    safeHtml('watchExplainAlternatives',alt||'<li>No alternative recorded.</li>');
+  } catch(error) {
+    safeText('watchExplainWhat',error.message);
+    safeText('watchExplainTrace','Unable to resolve decision explanation.');
+  }
+}
+
 function bind() {
   el('patientBack')?.addEventListener('click', () => {
   document.querySelector('.patient')?.classList.remove('patient-centered');
@@ -554,6 +634,8 @@ el('centerPatientClose')?.addEventListener('click', () => {
     });
   });
   el('cycle')?.addEventListener('click', runCycle);
+  el('watchRun')?.addEventListener('click', runWatch);
+  el('watchExplainClose')?.addEventListener('click', () => closeModal('watchModal'));
   el('askQuestion')?.addEventListener('click', askAtlas);
   el('questionInput')?.addEventListener('keydown', event => {
     if (event.key === 'Enter') askAtlas();
@@ -572,6 +654,7 @@ el('centerPatientClose')?.addEventListener('click', () => {
   el('bell')?.addEventListener('click', loadHumanGate);
   el('close')?.addEventListener('click', () => closeModal('modal'));
   el('queryClose')?.addEventListener('click', () => closeModal('queryModal'));
+  el('watchClose')?.addEventListener('click', () => closeModal('watchModal'));
 
   el('reject')?.addEventListener('click', async () => {
     try {
