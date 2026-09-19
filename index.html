@@ -36,41 +36,42 @@
 <section class="grapharea">
   <div class="graphhead"><b>STUDY INTELLIGENCE CONSOLE</b><span>select a layer · inspect evidence</span></div>
   <div id="centerPatient" class="centerpatient hidden">
-    <div class="centerpatient-head">
-      <div><small id="centerPatientKicker">PATIENT 360 · CENTER FOCUS</small><h2 id="centerPatientId">—</h2><span id="centerPatientMeta">Loading subject evidence…</span></div>
-      <button id="centerPatientClose">← BACK TO GRAPH</button>
+    <div class="asidehead center-asidehead">
+      <button id="centerPatientBack" class="patient-back center-back" type="button" aria-label="Back to graph">←</button>
+      <div><small>PATIENT 360</small><h2 id="centerPatientId">042-S07-001</h2></div>
+      <span class="badge">CRITICAL</span>
+    </div>
+    <div class="meta" id="centerPatientMeta">SITE S07 · SCREENING → TREATMENT</div>
+
+    <div class="tabs center-tabs-copy" role="tablist" aria-label="Patient 360">
+      <button class="tab active" data-center-tab="overview" type="button">OVERVIEW</button>
+      <button class="tab" data-center-tab="labs" type="button">LABS</button>
+      <button class="tab" data-center-tab="meds" type="button">MEDICATIONS</button>
+      <button class="tab" data-center-tab="disease" type="button">DISEASES</button>
     </div>
 
-    <div id="centerPatientView">
-      <div class="centerpatient-grid">
-        <div class="centercard"><small>CLINICAL STATUS</small><b id="centerStatus">—</b><p id="centerAnswer">Fetching live evidence from StudyGraph…</p></div>
-        <div class="centercard"><small>PROTOCOL</small><b id="centerProtocol">—</b><p id="centerContext">—</p></div>
-        <div class="centercard wide"><small>SOURCE EVIDENCE</small><div id="centerEvidence">Loading…</div></div>
+    <div id="center-tab-overview" class="tabpane active">
+      <div class="timeline">
+        <div><i></i><b>SCREENING</b><small>Day −7 · baseline</small></div>
+        <div class="hot"><i></i><b>LAB SPIKE</b><small id="centerTimelineLab">ALT 239.7 U/L · BILI 5.38 mg/dL</small></div>
+        <div><i></i><b>DOSE</b><small>10 mg QD · EX seq 1</small></div>
       </div>
+      <div class="evidencecard"><small>CLINICAL SIGNAL</small><b id="centerClinicalSignal">Hy's Law candidate</b><p id="centerClinicalText">ALT > 3× ULN and bilirubin > 2× ULN within 14 days.</p></div>
+      <div class="evidencecard"><small>EVIDENCE</small><b id="centerEvidenceTitle">LB · 042-S07-001 · seq 1</b><p id="centerEvidenceSummary">Source evidence from the active StudyGraph cut.</p></div>
+      <div class="evidencecard"><small>ATLAS LIVE ANSWER</small><b id="centerLiveAnswerTitle">Select a subject or signal</b><p id="centerLiveAnswer">The panel is connected to StudyGraph.</p></div>
+      <div class="evidencecard"><small>MEDICAL CONTEXT</small><b id="centerProtocol">Protocol v3</b><p id="centerContext">Evidence is resolved from the active graph cut.</p></div>
+    </div>
 
-      <div class="center-tabs" role="tablist" aria-label="Patient 360 sections">
-        <button class="center-tab active" data-center-tab="overview" type="button">OVERVIEW</button>
-        <button class="center-tab" data-center-tab="labs" type="button">LABS</button>
-        <button class="center-tab" data-center-tab="meds" type="button">MEDICATIONS</button>
-        <button class="center-tab" data-center-tab="disease" type="button">DISEASES</button>
-        <button class="center-tab" data-center-tab="ae" type="button">ADVERSE EVENTS</button>
-      </div>
+    <div id="center-tab-labs" class="tabpane">
+      <div class="evidencecard"><small>LABORATORY RESULTS</small><div id="centerLabsContent"></div></div>
+    </div>
 
-      <div id="center-tab-overview" class="center-tabpane active">
-        <div class="centercard wide"><small>PATIENT CONTEXT</small><p id="centerOverviewContext">Patient-level evidence across clinical domains at the active cut.</p></div>
-      </div>
-      <div id="center-tab-labs" class="center-tabpane">
-        <div class="centercard wide"><small>LABORATORY RESULTS</small><div id="centerLabsContent">Loading…</div></div>
-      </div>
-      <div id="center-tab-meds" class="center-tabpane">
-        <div class="centercard wide"><small>CONCOMITANT MEDICATIONS</small><div id="centerMedsContent">Loading…</div></div>
-      </div>
-      <div id="center-tab-disease" class="center-tabpane">
-        <div class="centercard wide"><small>MEDICAL HISTORY / DISEASES</small><div id="centerDiseaseContent">Loading…</div></div>
-      </div>
-      <div id="center-tab-ae" class="center-tabpane">
-        <div class="centercard wide"><small>ADVERSE EVENTS</small><div id="centerAeContent">Loading…</div></div>
-      </div>
+    <div id="center-tab-meds" class="tabpane">
+      <div class="evidencecard"><small>CONCOMITANT MEDICATIONS</small><div id="centerMedsContent"></div></div>
+    </div>
+
+    <div id="center-tab-disease" class="tabpane">
+      <div class="evidencecard"><small>MEDICAL HISTORY / DISEASES</small><div id="centerDiseaseContent"></div></div>
     </div>
 
     <div id="centerLayerView" class="center-layer-view hidden">
