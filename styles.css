@@ -704,3 +704,104 @@ background-size:42px 42px;mask-image:radial-gradient(circle at center,#000 15%,t
 @media(max-width:900px){
  .atlas-console .console-insight{max-width:42%!important;width:180px!important}
 }
+
+
+/* FINAL DEMO POLISH — spacious console, wider controls, centered Patient 360 */
+body{font-size:13px!important}
+.workspace{grid-template-columns:250px minmax(0,1fr) 360px!important}
+.pipeline{padding-left:250px!important}
+
+.leftpanel{
+  padding:20px 18px!important;
+  overflow-y:auto!important;
+}
+.leftpanel .paneltitle{font-size:9px!important}
+.leftpanel .metric{padding:12px 0!important}
+.leftpanel .metric small{font-size:9px!important}
+.leftpanel .metric b{font-size:25px!important}
+.leftpanel .metric span{font-size:9px!important}
+.leftpanel .sectionlabel{font-size:8px!important;margin:20px 0 10px!important}
+.leftpanel .sitehealth div{font-size:10px!important;padding:7px 0!important}
+.leftpanel .sitehealth span{font-size:8px!important}
+.leftpanel .focus{font-size:10px!important;padding:9px!important}
+.leftpanel .focus span{font-size:8px!important}
+.leftpanel .watchhead small{font-size:9px!important}
+.leftpanel .watchhead b{font-size:14px!important}
+.leftpanel .watchhead span{font-size:9px!important}
+.leftpanel .watchcard p{font-size:12px!important}
+.leftpanel .watchmetrics b{font-size:16px!important}
+.leftpanel .watchmetrics small{font-size:8px!important}
+.leftpanel .watchrun{font-size:10px!important}
+
+.grapharea .graphhead{font-size:10px!important}
+.grapharea .console-label{font-size:9px!important}
+.atlas-console{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(69,232,208,.055),transparent 25%),
+    radial-gradient(circle at 50% 50%,rgba(72,201,236,.025),transparent 50%)!important;
+}
+.atlas-console .core.console-core{
+  left:50%!important;top:50%!important;
+  width:108px!important;height:108px!important;
+}
+.atlas-console .s1{left:22%!important;top:29%!important}
+.atlas-console .s2{left:78%!important;top:29%!important}
+.atlas-console .s3{left:78%!important;top:71%!important}
+.atlas-console .s4{left:22%!important;top:71%!important}
+.atlas-console .category-node{
+  width:92px!important;height:68px!important;border-radius:13px!important;
+}
+.atlas-console .category-node strong{font-size:11px!important}
+.atlas-console .category-node small{font-size:8px!important}
+.atlas-console .category-node em{font-size:9px!important}
+.atlas-console .category-mini,
+.atlas-console .subject,
+.atlas-console .sat,
+.atlas-console .nodepreview{display:none!important}
+.atlas-console .console-lines .c1{width:150px!important;left:27%!important;top:31%!important}
+.atlas-console .console-lines .c2{width:150px!important;left:73%!important;top:31%!important}
+.atlas-console .console-lines .c3{width:150px!important;left:73%!important;top:69%!important}
+.atlas-console .console-lines .c4{width:150px!important;left:27%!important;top:69%!important}
+.atlas-console .console-lines .c5,
+.atlas-console .console-lines .c6{display:none!important}
+.atlas-console .console-insight{
+  right:18px!important;top:48px!important;
+  width:220px!important;max-width:28%!important;
+  padding:9px 11px!important;
+  text-align:left!important;
+}
+.atlas-console .console-insight b{font-size:11px!important}
+.atlas-console .console-insight span,
+.atlas-console .console-insight em{font-size:8px!important}
+
+.centerpatient{
+  inset:58px 24px 28px 24px!important;
+  z-index:80!important;
+  border-radius:16px!important;
+  padding:24px!important;
+  background:rgba(7,14,22,.985)!important;
+}
+.centerpatient-head h2{font-size:30px!important}
+.centerpatient-head small,.centercard small{font-size:9px!important}
+.centerpatient-head span{font-size:13px!important}
+.centercard b{font-size:18px!important}
+.centercard p{font-size:12px!important}
+.evidence-row span{font-size:12px!important}
+
+/* Center mode uses the dedicated center Patient 360 overlay.
+   Keep Mission Control visible, hide the right duplicate and graph only. */
+.workspace.patient-center-mode .leftpanel{
+  visibility:visible!important;
+}
+.workspace.patient-center-mode .grapharea{
+  visibility:visible!important;
+}
+.workspace.patient-center-mode .atlas-console{
+  visibility:hidden!important;
+}
+.workspace.patient-center-mode .patient{
+  visibility:hidden!important;
+}
+.workspace.patient-center-mode .centerpatient{
+  visibility:visible!important;
+}
