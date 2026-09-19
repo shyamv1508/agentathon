@@ -251,46 +251,61 @@ function selectSubjectVisual(subject) {
 }
 
 function resetCenterTabs() {
-  document.querySelectorAll('.center-tab').forEach((tab, i) => tab.classList.toggle('active', i === 0));
-  document.querySelectorAll('.center-tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
+  document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === 0);
+  });
+  document.querySelectorAll('#centerPatient > .tabpane').forEach((pane, i) => {
+    pane.classList.toggle('active', i === 0);
+  });
 }
 
 function renderCenterPatientData(patient) {
   const domains = patient?.domains || {};
+  const subject = patient?.usubjid || el('centerPatientId')?.textContent || 'Subject';
+  const labs = (domains.LB || []).filter(r => r?.LBTEST || r?.LBTESTCD || r?.LBORRES != null || r?.LBSTRESN != null);
   const meds = [...new Set((domains.CM || []).map(r => r?.CMTRT).filter(Boolean))];
   const diseases = [...new Set((domains.MH || []).map(r => r?.MHTERM).filter(Boolean))];
-  const aes = (domains.AE || []).filter(r => r?.AETERM).map(r => {
-    const serious = String(r.AESER || '').toUpperCase() === 'Y' || String(r.AESHOSP || '').toUpperCase() === 'Y';
-    return '<div class="center-list-row"><div><b>' + escapeHtml(r.AETERM) + '</b><small>' +
-      escapeHtml([r.AESTDTC, r.AEENDTC].filter(Boolean).join(' → ') || 'Date not recorded') +
-      '</small></div><strong>' + (serious ? 'SERIOUS' : 'NON-SERIOUS') + '</strong></div>';
-  });
-  const labs = (domains.LB || []).filter(r => r?.LBTEST || r?.LBORRES != null || r?.LBSTRESN != null).map(r => {
+
+  const labRows = labs.map(r => {
     const test = r.LBTEST || r.LBTESTCD || 'Lab';
     const value = r.LBSTRESN ?? r.LBORRES ?? '—';
     const unit = r.LBSTRESU || '';
     const date = r.LBDTC || r.LBDY || '';
-    return '<div class="center-list-row"><div><b>' + escapeHtml(test) + '</b><small>' +
+    return '<div class="labrow"><div><b>' + escapeHtml(test) + '</b><small>' +
       escapeHtml(date) + '</small></div><strong>' + escapeHtml(String(value)) +
       (unit ? ' ' + escapeHtml(unit) : '') + '</strong></div>';
   });
 
-  safeHtml('centerLabsContent', labs.length ? labs.join('') : '<span class="termempty">No laboratory records at this cut.</span>');
+  safeHtml('centerLabsContent', labRows.length ? labRows.join('') : '<span class="termempty">No laboratory records at this cut.</span>');
   safeHtml('centerMedsContent', meds.length
-    ? '<div class="center-chip-list">' + meds.map(x => termButton('medication', x)).join('') + '</div>'
+    ? '<div class="termchips center-chip-list">' + meds.map(x => termButton('medication', x)).join('') + '</div>'
     : '<span class="termempty">No medications at this cut.</span>');
   safeHtml('centerDiseaseContent', diseases.length
-    ? '<div class="center-chip-list">' + diseases.map(x => termButton('disease', x)).join('') + '</div>'
+    ? '<div class="termchips center-chip-list">' + diseases.map(x => termButton('disease', x)).join('') + '</div>'
     : '<span class="termempty">No medical history / diseases at this cut.</span>');
-  safeHtml('centerAeContent', aes.length ? aes.join('') : '<span class="termempty">No adverse events at this cut.</span>');
-  safeText('centerOverviewContext',
-    'Subject has ' + (labs.length) + ' lab records, ' + meds.length + ' medication terms, ' +
-    diseases.length + ' medical-history terms, and ' + aes.length + ' adverse-event records at cut ' + currentCut() + '.');
+
+  const latest = labs[labs.length - 1];
+  if (latest) {
+    const test = latest.LBTEST || latest.LBTESTCD || 'Lab';
+    const value = latest.LBSTRESN ?? latest.LBORRES ?? '—';
+    const unit = latest.LBSTRESU || '';
+    safeText('centerTimelineLab', test + ' ' + value + (unit ? ' ' + unit : ''));
+  } else {
+    safeText('centerTimelineLab', 'No laboratory result available');
+  }
+
+  safeText('centerClinicalText',
+    subject + ' has ' + labs.length + ' lab records, ' + meds.length +
+    ' medication terms and ' + diseases.length + ' medical-history terms at cut ' + currentCut() + '.');
+  safeText('centerEvidenceSummary',
+    'Source evidence is available through the LABS, MEDICATIONS and DISEASES tabs.');
+  safeText('centerLiveAnswerTitle', subject);
 
   document.querySelectorAll('#centerPatient .termchip').forEach(btn => {
     btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue));
   });
 }
+
 
 function subjectIdsFromResult(result) {
   const ids = Array.isArray(result?.answer) ? result.answer : [];
@@ -410,37 +425,28 @@ async function openCenterLayer(category) {
 async function focusSubject(subject, question, label) {
   selectSubjectVisual(subject);
   safeText('patient', subject);
-  safeText('liveAnswerTitle', 'Loading ' + label + '…');
-  safeText('liveAnswer', 'Fetching live evidence from StudyGraph…');
 
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
   const workspace = document.querySelector('.workspace');
-  const patientView = el('centerPatientView');
   const layerView = el('centerLayerView');
 
   if (workspace) workspace.classList.add('patient-center-mode');
   if (graph) graph.classList.add('centerhidden');
   if (center) center.classList.remove('hidden');
-  if (patientView) patientView.classList.remove('hidden');
   if (layerView) layerView.classList.add('hidden');
   resetCenterTabs();
 
-  if (center) {
-    safeText('centerPatientKicker', 'PATIENT 360 · CENTER FOCUS');
-    safeText('centerPatientId', subject);
-    safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · CUT ' + currentCut());
-    safeText('centerStatus', 'LOADING');
-    safeText('centerAnswer', 'Fetching live evidence from StudyGraph…');
-    safeText('centerProtocol', 'Protocol ' + protocolFor(currentCut()));
-    safeText('centerContext', 'Resolving patient360 and source records…');
-    safeText('centerEvidence', 'Loading…');
-    safeText('centerOverviewContext', 'Loading patient domains…');
-    safeHtml('centerLabsContent', '<span class="termempty">Loading…</span>');
-    safeHtml('centerMedsContent', '<span class="termempty">Loading…</span>');
-    safeHtml('centerDiseaseContent', '<span class="termempty">Loading…</span>');
-    safeHtml('centerAeContent', '<span class="termempty">Loading…</span>');
-  }
+  safeText('centerPatientId', subject);
+  safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · SCREENING → TREATMENT');
+  safeText('centerProtocol', 'Protocol ' + protocolFor(currentCut()));
+  safeText('centerLiveAnswerTitle', 'Loading ' + label + '…');
+  safeText('centerLiveAnswer', 'Fetching live evidence from StudyGraph…');
+  safeText('centerEvidenceTitle', 'StudyGraph · ' + subject);
+  safeText('centerEvidenceSummary', 'Loading source evidence…');
+  safeHtml('centerLabsContent', '<span class="termempty">Loading…</span>');
+  safeHtml('centerMedsContent', '<span class="termempty">Loading…</span>');
+  safeHtml('centerDiseaseContent', '<span class="termempty">Loading…</span>');
 
   try {
     const [data, patient] = await Promise.all([
@@ -454,28 +460,31 @@ async function focusSubject(subject, question, label) {
     safeText('liveAnswer', answerText);
     safeText('medicalContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + evidence.length + ' source records');
 
-    if (center) {
-      safeText('centerStatus', label || 'PATIENT 360');
-      safeText('centerAnswer', answerText);
-      safeText('centerContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + evidence.length + ' source records');
-      const evidenceHtml = evidence.length
-        ? evidence.map(e => '<div class="evidence-row"><b>' + escapeHtml(e.domain || 'RECORD') + '</b><span>' + escapeHtml([e.usubjid, e.seq != null ? 'seq ' + e.seq : '', e.document, e.section].filter(Boolean).join(' · ')) + '</span></div>').join('')
-        : 'No source records returned.';
-      center.querySelector('#centerEvidence').innerHTML = evidenceHtml;
-      renderCenterPatientData(patient);
-    }
+    safeText('centerClinicalText', answerText);
+    safeText('centerLiveAnswerTitle', label || subject);
+    safeText('centerLiveAnswer', answerText);
+    safeText('centerContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + evidence.length + ' source records');
+    safeText('centerEvidenceTitle',
+      evidence.length
+        ? ((evidence[0].domain || 'RECORD') + ' · ' + (evidence[0].usubjid || subject) + (evidence[0].seq != null ? ' · seq ' + evidence[0].seq : ''))
+        : 'StudyGraph · ' + subject);
+    safeHtml('centerEvidenceSummary',
+      evidence.length
+        ? evidence.map(e => '<div class="queryev"><b>' + escapeHtml(e.domain || 'RECORD') + '</b> · ' +
+          escapeHtml([e.usubjid, e.seq != null ? 'seq ' + e.seq : '', e.document, e.section].filter(Boolean).join(' · ')) +
+          '</div>').join('')
+        : 'No source records returned.');
 
+    renderCenterPatientData(patient);
     await loadPatientTerms(subject);
     trace('<b>[focus]</b> ' + subject + ' opened in center');
     return data;
   } catch (error) {
     safeText('liveAnswerTitle', 'Query error');
     safeText('liveAnswer', error.message);
-    if (center) {
-      safeText('centerStatus', 'QUERY ERROR');
-      safeText('centerAnswer', error.message);
-      safeText('centerContext', 'The center Patient 360 could not load the StudyGraph answer.');
-    }
+    safeText('centerLiveAnswerTitle', 'Query error');
+    safeText('centerLiveAnswer', error.message);
+    safeText('centerEvidenceSummary', 'The center Patient 360 could not load the StudyGraph answer.');
   }
 }
 async function runCycle() {
@@ -813,22 +822,21 @@ async function explainWatch(decisionId) {
 function bind() {
   el('patientBack')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
-    el('centerPatientView')?.classList.remove('hidden');
     el('centerLayerView')?.classList.add('hidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.graph')?.classList.remove('centerhidden');
   });
 el('centerPatientClose')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
+    el('centerLayerView')?.classList.add('hidden');
     document.querySelector('.graph')?.classList.remove('centerhidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
-    document.querySelector('.patient')?.classList.remove('patient-centered');
   });
 
-  document.querySelectorAll('.center-tabs .center-tab').forEach(tab => {
+  document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.center-tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.center-tabpane').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('#centerPatient > .tabpane').forEach(x => x.classList.remove('active'));
       tab.classList.add('active');
       el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
     });
