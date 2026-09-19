@@ -49,3 +49,5 @@ button:disabled{cursor:wait;opacity:.6}
 #cycle{min-width:150px;transition:all .2s ease}
 #cycle.running{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px #45e8d026}
 #cycle.done{border-color:#5ff0bd;color:#5ff0bd;box-shadow:0 0 18px #5ff0bd22}
+
+.tabs .tab{background:none;border:0;color:#506a6f;font:7px 'DM Mono';padding:0;cursor:pointer}.tabs .tab.active{color:var(--cyan)}.tabpane{display:none}.tabpane.active{display:block}.tabcontent{min-height:110px;padding-top:12px}.tabcontent .termchips{margin-top:2px}
