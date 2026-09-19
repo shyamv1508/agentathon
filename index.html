@@ -19,6 +19,12 @@
   <div class="metric"><small>ACTIVE SUBJECTS</small><b id="subjects">—</b><span id="siteCount">loading study graph</span></div>
   <div class="metric"><small>GRAPH RECORDS</small><b id="records">—</b><span id="cutCount">loading cuts</span></div>
   <div class="metric critical"><small>CRITICAL SIGNALS</small><b id="critical">—</b><span>live findings at selected cut</span></div>
+  <div class="watchcard">
+    <div class="watchhead"><div><small>ATLAS WATCH</small><b>12-CUT SURVEILLANCE</b></div><span id="watchStatus">READY</span></div>
+    <p id="watchMessage">Continuously watches changing data, site risk, lab integrity, documents, human latency and budget.</p>
+    <div class="watchmetrics"><span><b id="watchSignals">—</b><small>SIGNALS</small></span><span><b id="watchDeviations">—</b><small>DEVIATIONS</small></span><span><b id="watchAdversarial">—</b><small>ADVERSARIAL</small></span><span><b id="watchOpen">—</b><small>OPEN</small></span></div>
+    <button id="watchRun" class="watchrun">▶ RUN 12-CUT WATCH</button>
+  </div>
   <div class="sectionlabel">SITE HEALTH</div>
   <div class="sitehealth"><div><i class="ok"></i><b>S01</b><span>COMPLIANT</span></div><div><i class="warn"></i><b>S08</b><span>WARNING</span></div><div><i class="bad"></i><b>S07</b><span>QUARANTINED</span></div></div>
   <div class="sectionlabel">FOCUS</div>
@@ -72,4 +78,16 @@
 
 <div id="queryModal" class="modal hidden"><div class="modalbox querybox"><div class="mhead"><div><small>ATLAS LIVE ANSWER</small><h2 id="queryTitle">Patient 360</h2></div><button id="queryClose">×</button></div><div class="record"><div id="queryAnswer">Querying StudyGraph…</div></div><div class="evidencecard"><small>RELATED SUBJECTS</small><div id="lookupSubjects" class="lookupsubjects">—</div></div><div class="evidencecard"><small>SOURCE RECORDS</small><div id="queryEvidence">Loading…</div></div></div></div>
 <div id="modal" class="modal hidden"><div class="modalbox"><div class="mhead"><div><small>HUMAN GATE · <span id="gateEscalation">ESCALATION</span></small><h2 id="gateCode">Awaiting escalation</h2></div><button id="close">×</button></div><div class="record"><b id="gateSubject">—</b><span id="gateRecord">—</span><p id="gateSummary">Select an escalation to review.</p><code id="gateEvidence">—</code></div><div id="clarify" class="clarify hidden">↻ Fetching context from StudyGraph…</div><div class="actions"><button id="reject">REJECT</button><button id="clar">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
+<div id="watchModal" class="modal hidden"><div class="modalbox watchmodal">
+  <div class="mhead"><div><small>ATLAS WATCH · EXPLANATION</small><h2 id="watchExplainId">Decision</h2></div><button id="watchClose">×</button></div>
+  <div class="watchgrid">
+    <div class="watchsection"><small>12-CUT RUN</small><div id="watchCuts"></div><p class="watchbudget">Budget tier: <b id="watchBudget">normal</b></p></div>
+    <div class="watchsection"><small>EXPLAINABLE DECISIONS</small><div id="watchDecisions" class="decisionlist"></div></div>
+    <div class="watchsection wide"><small>WHAT HAPPENED</small><b id="watchExplainWhat">—</b></div>
+    <div class="watchsection wide"><small>WHY THIS DECISION</small><p id="watchExplainWhy">—</p></div>
+    <div class="watchsection wide"><small>TRACE-BACKED EVIDENCE</small><div id="watchExplainEvidence"></div><p id="watchExplainTrace">—</p></div>
+    <div class="watchsection wide"><small>ALTERNATIVES CONSIDERED</small><ul id="watchExplainAlternatives"></ul></div>
+  </div>
+  <button id="watchExplainClose" class="watchrun">CLOSE</button>
+</div></div>
 <script src="/app.js?v=20260920"></script></body></html>
