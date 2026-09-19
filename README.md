@@ -70,3 +70,8 @@ Records are indexed as domain/subject/sequence identities, with subjects linking
 ## What we know is weak
 
 The hidden evaluation questions are not exposed in the public package, so local tests cannot prove hidden-test accuracy. Document-question wording may vary, so those queries are intentionally conservative. Hy's Law remains the most sensitive rule because timing, laboratory-specific ranges, and alternative explanations can affect the determination; this needs further hidden-test validation.
+
+
+## Final Demo
+
+ATLAS, MONITOR, and WATCH are integrated for the final demonstration.
