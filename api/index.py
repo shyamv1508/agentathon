@@ -23,13 +23,13 @@ _STATS = None
 _CREW = None
 
 
-
 class GateDecision(BaseModel):
     cut: int
     code: str
     usubjid: str | None = None
     decision: str
     reason: str = ""
+
 
 app = FastAPI(title="ATLAS API")
 
@@ -78,8 +78,6 @@ def answer_question(text: str, cut: int):
         _GRAPH.ensure_fresh()
     question = Question(question_id="web", kind="lookup", text=text, cut=cut)
     answer = _ATLAS.answer(question)
-    # Keep the web UI evidence-first even when a query branch returns subject IDs
-    # without attaching its record refs.
     if answer.answer and not answer.evidence:
         subjects = [x for x in answer.answer if isinstance(x, str) and x.startswith("042-")]
         if subjects:
@@ -138,7 +136,6 @@ def query(q: str = "", cut: int = 12):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-
 @app.get("/api/patient/{usubjid}")
 def patient(usubjid: str, cut: int = 12):
     if cut < 1 or cut > 12:
@@ -151,7 +148,7 @@ def patient(usubjid: str, cut: int = 12):
 @app.get("/api/lookup")
 def lookup(type: str = "", value: str = "", cut: int = 12):
     if cut < 1 or cut > 12:
-        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+        raise HTTPException(status_code=400, detail="Lookup value is required")
     if not value.strip():
         raise HTTPException(status_code=400, detail="Lookup value is required")
     if _GRAPH.cut != cut:
@@ -169,9 +166,17 @@ def lookup(type: str = "", value: str = "", cut: int = 12):
     else:
         raise HTTPException(status_code=400, detail="type must be medication, disease, or adverse_event")
     subjects = sorted({r.get("USUBJID") for r in matches if r.get("USUBJID")})
-    return {"type": type, "value": value, "subjects": subjects, "count": len(subjects), "evidence": [
-        {"domain": r.get("_domain"), "usubjid": r.get("USUBJID"), "seq": r.get("_seq")} for r in matches
-    ]}
+    return {
+        "type": type,
+        "value": value,
+        "subjects": subjects,
+        "count": len(subjects),
+        "evidence": [
+            {"domain": r.get("_domain"), "usubjid": r.get("USUBJID"), "seq": r.get("_seq")}
+            for r in matches
+        ],
+    }
+
 
 @app.get("/api/escalations")
 def escalations(cut: int = 12):
@@ -194,7 +199,9 @@ def watch(cut_start: int = 1, cut_end: int = 12, budget_seconds: float = 180):
     try:
         watcher = get_watch()
         _WATCH_REPORT = watcher.run_period(range(cut_start, cut_end + 1), budget_seconds=budget_seconds)
-        payload = _WATCH_REPORT.model_dump()\n        payload["decision_log"] = get_watch().decisions\n        return payload
+        payload = _WATCH_REPORT.model_dump()
+        payload["decision_log"] = get_watch().decisions
+        return payload
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -229,8 +236,15 @@ def gate(payload: GateDecision):
         protocol = 3 if payload.cut >= 9 else 2 if payload.cut >= 6 else 1
         if _GRAPH.cut != payload.cut:
             _GRAPH.build(payload.cut)
-        result = get_crew().resolve_human_decision(payload.cut, payload.code, payload.usubjid, payload.decision, payload.reason)
-        return {"ok": True, "protocol": protocol, "decision": payload.decision.upper(), "escalation": result}
+        result = get_crew().resolve_human_decision(
+            payload.cut, payload.code, payload.usubjid, payload.decision, payload.reason
+        )
+        return {
+            "ok": True,
+            "protocol": protocol,
+            "decision": payload.decision.upper(),
+            "escalation": result,
+        }
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
