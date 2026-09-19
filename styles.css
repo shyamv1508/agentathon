@@ -438,3 +438,46 @@ body{font-size:12px}
   .centerpatient-grid{grid-template-columns:1fr}
   .centercard.wide{grid-column:auto}
 }
+
+
+/* full Patient 360: hidden from the normal sidebar, centered on subject focus */
+.patient-centered{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  width:min(920px,calc(100% - 80px))!important;
+  height:min(760px,calc(100% - 34px))!important;
+  max-height:calc(100% - 34px)!important;
+  transform:translate(-50%,-50%)!important;
+  z-index:50!important;
+  overflow:auto!important;
+  border:1px solid rgba(69,232,208,.35)!important;
+  border-radius:18px!important;
+  background:rgba(7,14,22,.98)!important;
+  box-shadow:0 0 45px rgba(0,0,0,.5),0 0 24px rgba(69,232,208,.08)!important;
+  padding:18px!important;
+}
+.patient-centered .terminal{
+  max-height:240px;
+  overflow:auto;
+}
+.workspace.patient-center-mode .grapharea,
+.workspace.patient-center-mode .leftpanel{
+  visibility:hidden!important;
+}
+.workspace.patient-center-mode .patient{
+  display:block!important;
+}
+.workspace.patient-center-mode .patient .asidehead{
+  position:sticky;
+  top:0;
+  z-index:3;
+  background:rgba(7,14,22,.98);
+}
+@media(max-width:900px){
+  .patient-centered{
+    width:calc(100% - 24px)!important;
+    height:calc(100% - 24px)!important;
+  }
+}
