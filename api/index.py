@@ -65,7 +65,20 @@ def answer_question(text: str, cut: int):
     else:
         _GRAPH.ensure_fresh()
     question = Question(question_id="web", kind="lookup", text=text, cut=cut)
-    return _ATLAS.answer(question).model_dump()
+    answer = _ATLAS.answer(question)
+    # Keep the web UI evidence-first even when a query branch returns subject IDs
+    # without attaching its record refs.
+    if answer.answer and not answer.evidence:
+        subjects = [x for x in answer.answer if isinstance(x, str) and x.startswith("042-")]
+        if subjects:
+            from stage1.evidence import refs
+            rows = []
+            for subject in subjects:
+                patient = _GRAPH.patient360(subject)
+                for domain_rows in patient.get("domains", {}).values():
+                    rows.extend(domain_rows)
+            answer.evidence = refs(rows)
+    return answer.model_dump()
 
 
 @app.get("/")
