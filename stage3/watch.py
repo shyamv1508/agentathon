@@ -34,11 +34,12 @@ class StudyWatch:
     def __init__(self, data_dir: str, crew: ReviewCrew):
         self.data_dir=str(Path(data_dir)); self.crew=crew
         root=Path(self.data_dir).parent if Path(self.data_dir).name=="data" else Path(self.data_dir)
-        self.state_path=Path(os.getenv("STAGE3_STATE_PATH",str(root/"stage3_state.json")))
-        self.decision_path=Path(os.getenv("STAGE3_DECISION_LOG",str(root/"stage3_decisions.json")))
+        default_state = "/tmp/stage3_state.json" if os.getenv("VERCEL") else str(root/"stage3_state.json")
+        default_decisions = "/tmp/stage3_decisions.json" if os.getenv("VERCEL") else str(root/"stage3_decisions.json")
+        self.state_path=Path(os.getenv("STAGE3_STATE_PATH",default_state))
+        self.decision_path=Path(os.getenv("STAGE3_DECISION_LOG",default_decisions))
         self.state=self._load(self.state_path,{"last_cut":0,"protocol":None,"pending":{},"quarantined_sites":[],"untrusted_lab":[],"docs":{},"labs":{}})
-        self.decisions=self._load(self.decision_path,{})
-        self.trace=[]; self.started=0; self.budget=0
+        self.decisions=self._load(self.decision_path,{}); self.trace=[]; self.started=0; self.budget=0
 
     @staticmethod
     def _load(path, default):
@@ -47,6 +48,8 @@ class StudyWatch:
         except (OSError,ValueError): return default
 
     def _save(self):
+        self.state_path.parent.mkdir(parents=True, exist_ok=True)
+        self.decision_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(self.state,indent=2),encoding="utf-8")
         self.decision_path.write_text(json.dumps(self.decisions,indent=2),encoding="utf-8")
 
@@ -108,18 +111,14 @@ class StudyWatch:
         return events
 
     def _quarantine(self):
-        """Temporarily exclude quarantined/untrusted records from safety analysis."""
         g=self.crew.atlas.graph; sites=set(self.state["quarantined_sites"]); bad={(x["site"],x["test"]) for x in self.state["untrusted_lab"]}
         backup={d:[dict(r) for r in rows] for d,rows in g.rows.items()}
         for d,rows in list(g.rows.items()):
             g.rows[d]=[r for r in rows if self._site(r.get("USUBJID")) not in sites and not (d=="LB" and (self._site(r.get("USUBJID")),str(r.get("LBTESTCD") or r.get("LBTEST") or "").upper()) in bad)]
-        g._reindex_rows()
-        return backup
+        g._reindex_rows(); return backup
 
-    def _restore_quarantine(self, backup):
-        g=self.crew.atlas.graph
-        g.rows=backup
-        g._reindex_rows()
+    def _restore_quarantine(self,backup):
+        g=self.crew.atlas.graph; g.rows=backup; g._reindex_rows()
 
     def _decisions(self,cut,report):
         for a in report.escalations:
