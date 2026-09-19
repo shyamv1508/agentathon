@@ -1,16 +1,25 @@
 import os
 from .normalization import csv_rows, norm_domain_row, safe_int
 
-DOMAINS=("DM","AE","LB","VS","EX","CM","DS","MH","EG")
+BASE_DOMAINS=("DM","AE","LB","VS","EX","CM","DS","MH","EG")
+META_FILES={"reference_ranges.csv","corrections.csv","cuts.csv"}
 
 class DataStore:
     def __init__(self,data_dir):
-        # The harness passes the dataset root (hackathon-data), while the CSVs
-        # live in its data/ subdirectory. Accept either form.
         nested=os.path.join(data_dir,"data")
         self.data_dir=nested if os.path.isdir(nested) else data_dir
         self.raw={}; self.corrections=[]; self.cuts=[]; self.refs=[]; self.reference_ranges={}
         self._load()
+
+    def _discover_domains(self):
+        if not os.path.isdir(self.data_dir):
+            return list(BASE_DOMAINS)
+        names=[]
+        for name in os.listdir(self.data_dir):
+            if not name.lower().endswith(".csv") or name in META_FILES:
+                continue
+            names.append(os.path.splitext(name)[0].upper())
+        return sorted(set(BASE_DOMAINS).union(names))
 
     def _load(self):
         rp=os.path.join(self.data_dir,"reference_ranges.csv")
@@ -19,9 +28,13 @@ class DataStore:
             key=(str(r.get("LAB","")).strip().upper(),str(r.get("LBTESTCD","")).strip().upper())
             self.reference_ranges[key]=r
 
-        for d in DOMAINS:
+        for d in self._discover_domains():
             p=os.path.join(self.data_dir,d+".csv")
-            self.raw[d]=[norm_domain_row(d,r) for r in csv_rows(p)] if os.path.exists(p) else []
+            if not os.path.exists(p):
+                p=os.path.join(self.data_dir,d.lower()+".csv")
+            if os.path.exists(p):
+                self.raw[d]=[norm_domain_row(d,r) for r in csv_rows(p)]
+
         cp=os.path.join(self.data_dir,"corrections.csv")
         self.corrections=csv_rows(cp) if os.path.exists(cp) else []
         cutp=os.path.join(self.data_dir,"cuts.csv")
