@@ -108,9 +108,17 @@ class StudyWatch:
         return events
 
     def _quarantine(self):
+        """Temporarily exclude quarantined/untrusted records from safety analysis."""
         g=self.crew.atlas.graph; sites=set(self.state["quarantined_sites"]); bad={(x["site"],x["test"]) for x in self.state["untrusted_lab"]}
+        backup={d:list(rows) for d,rows in g.rows.items()}
         for d,rows in list(g.rows.items()):
             g.rows[d]=[r for r in rows if self._site(r.get("USUBJID")) not in sites and not (d=="LB" and (self._site(r.get("USUBJID")),str(r.get("LBTESTCD") or r.get("LBTEST") or "").upper()) in bad)]
+        g._reindex_rows()
+        return backup
+
+    def _restore_quarantine(self, backup):
+        g=self.crew.atlas.graph
+        g.rows=backup
         g._reindex_rows()
 
     def _decisions(self,cut,report):
@@ -123,8 +131,9 @@ class StudyWatch:
         for cut in cuts:
             if self.crew.atlas.graph.cut is None: self.crew.atlas.graph.build(cut)
             elif self.crew.atlas.graph.cut!=cut: self.crew.atlas.graph.update(cut)
-            adversarial += self._documents(cut)+self._lab_shift(cut)+self._regularity(cut); self._quarantine()
-            protocol=self._protocol(cut); report=self.crew.run_cycle(cut,protocol); self._decisions(cut,report)
+            adversarial += self._documents(cut)+self._lab_shift(cut)+self._regularity(cut)
+            quarantine_backup=self._quarantine()
+            protocol=self._protocol(cut); report=self.crew.run_cycle(cut,protocol); self._restore_quarantine(quarantine_backup); self._decisions(cut,report)
             for p in report.pending_escalations:
                 key=f"{p.get('code')}|{p.get('usubjid')}|{p.get('site')}"; state=self.state["pending"].setdefault(key,{"first_cut":cut}); state["last_cut"]=cut; state["waited_cuts"]=cut-state["first_cut"]
                 if state["waited_cuts"]>=4: self._log(cut,"escalation_unanswered_after_four_cuts",p.get("evidence",[]),no_silent_approval=True,standing_limits=True)
