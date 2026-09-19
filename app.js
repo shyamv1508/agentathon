@@ -408,18 +408,22 @@ function setupNodeHoverPreview() {
   const preview = document.querySelector('#nodePreview');
   if (!graph || !preview) return;
   const info = node => {
-    if (node.classList.contains('core')) return ['ATLAS PROTOCOL','Study intelligence core','Click to query the active protocol version.'];
+    if (node.classList.contains('core')) return [
+      'ATLAS CORE',
+      'Study intelligence control center',
+      'Clinical trial graph · protocol-aware reasoning · evidence-backed answers · amendment-aware monitoring.'
+    ];
     if (node.classList.contains('site')) {
       const id = node.textContent.trim();
-      return ['SITE ' + id,'Site intelligence node','Hover to inspect · click for site findings.'];
+      return ['SITE ' + id,'Site intelligence node','Subject population · site findings · recurring deviations · monitor signals. Hover shows the full node menu.'];
     }
     if (node.classList.contains('subject')) {
       const id = node.dataset.subject || node.textContent.trim();
-      return [id,'Patient 360 subject','Click to load live evidence, labs, medications and disease history.'];
+      return [id,'Patient 360','Labs · adverse events · concomitant medications · medical history · dosing · source evidence.'];
     }
     if (node.classList.contains('sat')) {
       const id = node.textContent.trim();
-      return [id + ' SIGNAL','Clinical evidence signal','Click to run the related StudyGraph finding lookup.'];
+      return [id + ' SIGNAL','Clinical evidence signal','Finding · severity · source record · protocol relevance · escalation context.'];
     }
     return null;
   };
