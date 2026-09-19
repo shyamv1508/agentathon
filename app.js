@@ -257,9 +257,15 @@ async function focusSubject(subject, question, label) {
 
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
+  const workspace = document.querySelector('.workspace');
+  const patientPanel = document.querySelector('.patient');
+  if (workspace && patientPanel) {
+    workspace.classList.add('patient-center-mode');
+    patientPanel.classList.add('patient-centered');
+  }
   if (center && graph) {
     graph.classList.add('centerhidden');
-    center.classList.remove('hidden');
+    center.classList.add('hidden');
     safeText('centerPatientId', subject);
     safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · CUT ' + currentCut());
     safeText('centerStatus', 'LOADING');
@@ -530,6 +536,8 @@ function bind() {
   el('centerPatientClose')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
     document.querySelector('.graph')?.classList.remove('centerhidden');
+    document.querySelector('.workspace')?.classList.remove('patient-center-mode');
+    document.querySelector('.patient')?.classList.remove('patient-centered');
   });
 
   document.querySelectorAll('.tabs .tab').forEach(tab => {
