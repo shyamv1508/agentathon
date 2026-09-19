@@ -477,6 +477,22 @@ async function focusSubject(subject, question, label) {
 
     renderCenterPatientData(patient);
     await loadPatientTerms(subject);
+
+    // Mirror the existing, proven sidebar Patient 360 content into the center.
+    const copyCenterPanel = (sourceId, targetId, emptyText) => {
+      const source = el(sourceId);
+      const target = el(targetId);
+      if (!target) return;
+      target.innerHTML = source?.innerHTML || '<span class="termempty">' + escapeHtml(emptyText) + '</span>';
+    };
+    copyCenterPanel('labsContent', 'centerLabsContent', 'No laboratory records at this cut.');
+    copyCenterPanel('medsContent', 'centerMedsContent', 'No medications at this cut.');
+    copyCenterPanel('diseaseContent', 'centerDiseaseContent', 'No medical history / diseases at this cut.');
+
+    document.querySelectorAll('#centerPatient .termchip').forEach(btn => {
+      btn.onclick = () => reverseLookup(btn.dataset.termType, btn.dataset.termValue);
+    });
+
     trace('<b>[focus]</b> ' + subject + ' opened in center');
     return data;
   } catch (error) {
