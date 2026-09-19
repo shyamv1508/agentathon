@@ -252,7 +252,7 @@ function selectSubjectVisual(subject) {
 
 function resetCenterTabs() {
   document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach((tab, i) => tab.classList.toggle('active', i === 0));
-  document.querySelectorAll('#centerPatient .tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
+  document.querySelectorAll('#centerPatient > .tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
 }
 
 function renderCenterPatientData(patient) {
@@ -313,15 +313,14 @@ async function openCenterLayer(category) {
   const workspace = document.querySelector('.workspace');
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
-  const patientView = el('centerPatientView');
   const layerView = el('centerLayerView');
 
-  if (!workspace || !center || !graph || !patientView || !layerView) return;
+  if (!workspace || !center || !graph || !layerView) return;
 
   workspace.classList.add('patient-center-mode');
   graph.classList.add('centerhidden');
   center.classList.remove('hidden');
-  patientView.classList.add('hidden');
+  center.classList.add('layer-mode');
   layerView.classList.remove('hidden');
 
   const definitions = {
@@ -431,6 +430,7 @@ async function focusSubject(subject, question, label) {
   if (graph) graph.classList.add('centerhidden');
   if (center) center.classList.remove('hidden');
   if (layerView) layerView.classList.add('hidden');
+  if (center) center.classList.remove('layer-mode');
   resetCenterTabs();
 
   if (center) {
@@ -449,11 +449,19 @@ async function focusSubject(subject, question, label) {
     safeHtml('centerAeContent', '<span class="termempty">Loading…</span>');
   }
 
+  let patient = null;
   try {
-    const [data, patient] = await Promise.all([
-      apiQuery(question),
-      apiPatient(subject)
-    ]);
+    patient = await apiPatient(subject);
+    renderCenterPatientData(patient);
+  } catch (error) {
+    safeHtml('centerLabsContent', '<span class="termempty">Unable to load laboratory records: ' + escapeHtml(error.message) + '</span>');
+    safeHtml('centerMedsContent', '<span class="termempty">Unable to load medications: ' + escapeHtml(error.message) + '</span>');
+    safeHtml('centerDiseaseContent', '<span class="termempty">Unable to load medical history: ' + escapeHtml(error.message) + '</span>');
+    safeText('centerOverviewContext', 'Patient records could not be loaded from StudyGraph.');
+  }
+
+  try {
+    const data = await apiQuery(question || ('What is the patient360 for ' + subject + '?'));
     const answerText = data.text || (data.answer || []).join(', ') || 'No findings returned.';
     const evidence = Array.isArray(data.evidence) ? data.evidence : [];
 
@@ -468,8 +476,8 @@ async function focusSubject(subject, question, label) {
       const evidenceHtml = evidence.length
         ? evidence.map(e => '<div class="evidence-row"><b>' + escapeHtml(e.domain || 'RECORD') + '</b><span>' + escapeHtml([e.usubjid, e.seq != null ? 'seq ' + e.seq : '', e.document, e.section].filter(Boolean).join(' · ')) + '</span></div>').join('')
         : 'No source records returned.';
-      center.querySelector('#centerEvidence').innerHTML = evidenceHtml;
-      renderCenterPatientData(patient);
+      const evidenceNode = center.querySelector('#centerEvidence');
+      if (evidenceNode) evidenceNode.innerHTML = evidenceHtml;
     }
 
     await loadPatientTerms(subject);
@@ -479,10 +487,14 @@ async function focusSubject(subject, question, label) {
     safeText('liveAnswerTitle', 'Query error');
     safeText('liveAnswer', error.message);
     if (center) {
-      safeText('centerStatus', 'QUERY ERROR');
-      safeText('centerAnswer', error.message);
-      safeText('centerContext', 'The center Patient 360 could not load the StudyGraph answer.');
+      safeText('centerStatus', patient ? (label || 'PATIENT 360') : 'QUERY ERROR');
+      safeText('centerAnswer', patient ? 'Patient data loaded. Clinical answer query failed.' : error.message);
+      safeText('centerContext', patient
+        ? 'The patient records are loaded; the live StudyGraph answer could not be resolved.'
+        : 'The center Patient 360 could not load the StudyGraph data.');
     }
+    trace('<b>[error]</b> ' + escapeHtml(error.message));
+    return null;
   }
 }
 async function runCycle() {
@@ -818,24 +830,23 @@ async function explainWatch(decisionId) {
 }
 
 function bind() {
-  el('patientBack')?.addEventListener('click', () => {
+  const closeCenter = () => {
     el('centerPatient')?.classList.add('hidden');
-    el('centerPatientView')?.classList.remove('hidden');
+    el('centerPatient')?.classList.remove('layer-mode');
     el('centerLayerView')?.classList.add('hidden');
+    resetCenterTabs();
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.graph')?.classList.remove('centerhidden');
-  });
-el('centerPatientClose')?.addEventListener('click', () => {
-    el('centerPatient')?.classList.add('hidden');
-    document.querySelector('.graph')?.classList.remove('centerhidden');
-    document.querySelector('.workspace')?.classList.remove('patient-center-mode');
-    document.querySelector('.patient')?.classList.remove('patient-centered');
-  });
+  };
+
+  el('centerPatientBack')?.addEventListener('click', closeCenter);
+  el('patientBack')?.addEventListener('click', closeCenter);
+  el('centerPatientClose')?.addEventListener('click', closeCenter);
 
   document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(tab => {
     const activateCenterTab = () => {
       document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('#centerPatient .tabpane').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('#centerPatient > .tabpane').forEach(x => x.classList.remove('active'));
       tab.classList.add('active');
       el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
     };
@@ -844,10 +855,10 @@ el('centerPatientClose')?.addEventListener('click', () => {
     tab.addEventListener('focus', activateCenterTab);
   });
 
-  document.querySelectorAll('.tabs .tab').forEach(tab => {
+  document.querySelectorAll('.patient > .tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.tabpane').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.patient > .tabs .tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.patient > .tabpane').forEach(x => x.classList.remove('active'));
       tab.classList.add('active');
       el('tab-' + tab.dataset.tab)?.classList.add('active');
     });
