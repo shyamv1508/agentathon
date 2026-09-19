@@ -807,6 +807,49 @@ body{font-size:13px!important}
 }
 
 
+/* Center Patient 360 uses the existing dashboard tab markup. */
+.center-tabs-copy{
+  display:flex!important;
+  align-items:center;
+  gap:24px;
+  margin-top:20px;
+  padding:0 2px 11px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  overflow:auto;
+  scrollbar-width:none;
+}
+.center-tabs-copy::-webkit-scrollbar{display:none}
+.center-tabs-copy .tab{
+  flex:0 0 auto;
+  border:0!important;
+  border-bottom:2px solid transparent!important;
+  background:transparent!important;
+  color:#6f8589!important;
+  padding:8px 2px 10px!important;
+  cursor:pointer;
+  font:600 11px 'DM Mono'!important;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+.center-tabs-copy .tab.active{
+  color:var(--cyan)!important;
+  border-bottom-color:var(--cyan)!important;
+}
+.center-tabs-copy .tab:hover,
+.center-tabs-copy .tab:focus-visible{
+  color:#dff7f3!important;
+  outline:none;
+}
+.centerpatient > .tabpane{
+  display:none;
+  margin-top:14px;
+}
+.centerpatient > .tabpane.active{display:block!important}
+.centerpatient.layer-mode > .center-tabs-copy,
+.centerpatient.layer-mode > .tabpane{
+  display:none!important;
+}
+
 /* CENTER PATIENT 360 + INTELLIGENCE LAYERS */
 .center-tabs{
   display:flex;
