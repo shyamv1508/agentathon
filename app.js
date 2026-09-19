@@ -76,18 +76,14 @@ function termButton(type, value) {
 }
 
 function renderPatientTerms(patient) {
-  const meds = (patient?.domains?.CM || []).map(r => r.CMTRT).filter(Boolean);
-  const diseases = (patient?.domains?.MH || []).map(r => r.MHTERM).filter(Boolean);
-  const aes = (patient?.domains?.AE || []).map(r => r.AETERM).filter(Boolean);
-  const unique = (items) => [...new Set(items)];
-  const parts = [];
-  unique(meds).forEach(x => parts.push(termButton('medication', x)));
-  unique(diseases).forEach(x => parts.push(termButton('disease', x)));
-  unique(aes).forEach(x => parts.push(termButton('adverse_event', x)));
-  safeHtml('patientTerms', parts.length ? parts.join('') : '<span class="termempty">No related terms at this cut.</span>');
-  document.querySelectorAll('.termchip').forEach(btn => {
-    btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue));
-  });
+  const meds = [...new Set((patient?.domains?.CM || []).map(r => r.CMTRT).filter(Boolean))];
+  const diseases = [...new Set((patient?.domains?.MH || []).map(r => r.MHTERM).filter(Boolean))];
+  const aes = [...new Set((patient?.domains?.AE || []).map(r => r.AETERM).filter(Boolean))];
+  safeHtml('medsContent', meds.length ? '<div class="termchips">' + meds.map(x => termButton('medication',x)).join('') + '</div>' : '<span class="termempty">No medications at this cut.</span>');
+  safeHtml('evidenceContent', aes.length ? '<div class="termchips">' + aes.map(x => termButton('adverse_event',x)).join('') + '</div>' : '<span class="termempty">No adverse events at this cut.</span>');
+  safeHtml('labsContent', '<div class="termempty">Labs are shown in the timeline and clinical evidence above.</div>');
+  safeHtml('patientTerms', diseases.length ? '<div class="termchips">' + diseases.map(x => termButton('disease',x)).join('') + '</div>' : '<span class="termempty">No medical history at this cut.</span>');
+  document.querySelectorAll('.termchip').forEach(btn => btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue)));
 }
 
 async function loadPatientTerms(subject) {
