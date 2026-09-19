@@ -1,5 +1,15 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS Nexus — Mission Control</title><link rel="stylesheet" href="/styles.css"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS Nexus — Mission Control</title><link rel="stylesheet" href="/styles.css"><style>
+/* Atom-style orbital planes: each ring rotates around a perpendicular axis */
+.graph{perspective:1000px;transform-style:preserve-3d}
+.ring{transform-style:preserve-3d;backface-visibility:visible}
+.ring1{animation:orbitPerpX 7s linear infinite!important}
+.ring2{animation:orbitPerpY 10s linear infinite!important}
+.ring3{animation:orbitPerpZ 14s linear infinite!important}
+@keyframes orbitPerpX{from{transform:translate(-50%,-50%) rotateX(72deg) rotateZ(0deg)}to{transform:translate(-50%,-50%) rotateX(72deg) rotateZ(360deg)}}
+@keyframes orbitPerpY{from{transform:translate(-50%,-50%) rotateY(72deg) rotateZ(0deg)}to{transform:translate(-50%,-50%) rotateY(72deg) rotateZ(360deg)}}
+@keyframes orbitPerpZ{from{transform:translate(-50%,-50%) rotateZ(12deg) rotate(0deg)}to{transform:translate(-50%,-50%) rotateZ(12deg) rotate(360deg)}}
+</style></head>
 <body>
 <div class="app">
 <header class="topbar">
@@ -7,12 +17,10 @@
   <div class="study"><span class="live">● LIVE</span><b>STUDY-042</b><span>·</span><span>DATA CUT <select id="cut"><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></span><span>·</span><span>PROTOCOL <b id="protocol">v3</b></span></div>
   <button id="bell" class="iconbtn">◈ <i id="pending">6</i></button>
 </header>
-
 <section class="pipeline">
 <div class="pnode active" id="p0"><span>01</span><b>DETECT</b><em>ACTIVE</em></div><div class="pnode " id="p1"><span>02</span><b>MEDICAL REVIEW</b><em>READY</em></div><div class="pnode " id="p2"><span>03</span><b>DATA MANAGER</b><em>READY</em></div><div class="pnode " id="p3"><span>04</span><b>COMPLIANCE</b><em>READY</em></div><div class="pnode " id="p4"><span>05</span><b>HUMAN GATE</b><em>READY</em></div><div class="pnode " id="p5"><span>06</span><b>EXECUTE</b><em>READY</em></div>
 <div class="aggregate"><small>AGGREGATE</small><b>● MONITORING</b></div>
 </section>
-
 <main class="workspace">
 <section class="leftpanel">
   <div class="paneltitle">MISSION CONTROL</div>
@@ -26,7 +34,6 @@
   <button class="focus" data-subject="042-S02-004" data-query="What serious adverse event does 042-S02-004 have?">042-S02-004 <span>SAE</span></button>
   <button class="focus" data-subject="042-S11-005" data-query="What findings are present for 042-S11-005?">042-S11-005 <span>DATA QUERY</span></button>
 </section>
-
 <section class="grapharea">
   <div class="graphhead"><b>3D ORBITAL KNOWLEDGE GRAPH</b><span>semantic view · click any node to focus</span></div>
   <div class="graph">
@@ -41,7 +48,6 @@
   </div>
   <div class="legend"><span><i class="cyan"></i> protocol/site</span><span><i class="amber"></i> deviation</span><span><i class="crimson"></i> critical</span><span><i class="pulse"></i> quarantined</span></div>
 </section>
-
 <aside class="patient">
   <div class="asidehead"><div><small>PATIENT 360</small><h2 id="patient">042-S07-001</h2></div><span class="badge">CRITICAL</span></div>
   <div class="meta">SITE S07 · SCREENING → TREATMENT</div>
@@ -56,10 +62,8 @@
   <div class="terminal"><div class="termhead"><span>ATLAS AGENT // QUERY</span><span id="termstatus">READY</span></div><div class="askbar"><input id="questionInput" type="text" placeholder="Ask ATLAS about a subject, medication, disease, lab, or finding…" autocomplete="off"><button id="askQuestion">ASK</button></div><div id="trace"><p><b>[detect]</b> 241 subjects indexed · 26,482 records visible</p><p><b>[medical_review]</b> Clinical signals separated from data errors</p><p><b>[compliance]</b> Protocol v3 rules loaded</p><p><b>[human_gate]</b> 6 escalations awaiting review</p></div><button id="cycle">▶ START CYCLE</button></div>
 </aside>
 </main>
-
 <footer class="footer"><span>ATLAS NEXUS</span><span id="footerStatus">Evidence-first · source identity preserved</span><button id="report">CYCLE REPORT</button></footer>
 </div>
-
 <div id="queryModal" class="modal hidden"><div class="modalbox querybox"><div class="mhead"><div><small>ATLAS LIVE ANSWER</small><h2 id="queryTitle">Patient 360</h2></div><button id="queryClose">×</button></div><div class="record"><div id="queryAnswer">Querying StudyGraph…</div></div><div class="evidencecard"><small>RELATED SUBJECTS</small><div id="lookupSubjects" class="lookupsubjects">—</div></div><div class="evidencecard"><small>SOURCE RECORDS</small><div id="queryEvidence">Loading…</div></div></div></div>
 <div id="modal" class="modal hidden"><div class="modalbox"><div class="mhead"><div><small>HUMAN GATE · <span id="gateEscalation">ESCALATION</span></small><h2 id="gateCode">Awaiting escalation</h2></div><button id="close">×</button></div><div class="record"><b id="gateSubject">—</b><span id="gateRecord">—</span><p id="gateSummary">Select an escalation to review.</p><code id="gateEvidence">—</code></div><div id="clarify" class="clarify hidden">↻ Fetching context from StudyGraph…</div><div class="actions"><button id="reject">REJECT</button><button id="clar">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
 <script src="/app.js?v=20260920"></script></body></html>
