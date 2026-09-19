@@ -51,3 +51,18 @@ button:disabled{cursor:wait;opacity:.6}
 #cycle.done{border-color:#5ff0bd;color:#5ff0bd;box-shadow:0 0 18px #5ff0bd22}
 
 .tabs .tab{background:none;border:0;color:#506a6f;font:7px 'DM Mono';padding:0;cursor:pointer}.tabs .tab.active{color:var(--cyan)}.tabpane{display:none}.tabpane.active{display:block}.tabcontent{min-height:110px;padding-top:12px}.tabcontent .termchips{margin-top:2px}
+
+/* right dashboard: keep patient content scrollable and ATLAS agent always reachable */
+.workspace{min-height:0}
+.patient{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.patient .tabpane{min-height:0;overflow-y:auto;flex:1}
+.patient .tabpane.active{min-height:0}
+.patient .gate,.patient .reverse{flex-shrink:0}
+.patient .terminal{flex-shrink:0;max-height:190px;overflow:auto}
+.patient .terminal #trace{max-height:70px;overflow-y:auto}
+@media(max-width:1000px){
+  .patient{overflow:visible}
+  .patient .tabpane{overflow:visible}
+  .patient .terminal{max-height:none}
+  .patient .terminal #trace{max-height:110px}
+}
