@@ -295,3 +295,18 @@ body{font-size:12px}
 .ring1{width:205px!important;height:205px!important}
 .ring2{width:370px!important;height:220px!important}
 .ring3{width:555px!important;height:315px!important}
+
+
+/* keep the three 2D orbital paths visually separated */
+.ring1{
+  width:190px!important;
+  height:190px!important;
+}
+.ring2{
+  width:340px!important;
+  height:200px!important;
+}
+.ring3{
+  width:500px!important;
+  height:285px!important;
+}
