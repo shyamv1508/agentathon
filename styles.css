@@ -42,6 +42,10 @@ button:disabled{cursor:wait;opacity:.6}
 .grapharea .site:hover,
 .grapharea .core:hover,
 .grapharea .sat:hover{
-  transform:scale(1.12)!important;
+  transform:translate(-50%,-50%) scale(1.12)!important;
   transform-origin:center center;
 }
+
+#cycle{min-width:150px;transition:all .2s ease}
+#cycle.running{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px #45e8d026}
+#cycle.done{border-color:#5ff0bd;color:#5ff0bd;box-shadow:0 0 18px #5ff0bd22}
