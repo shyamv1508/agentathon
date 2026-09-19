@@ -80,7 +80,8 @@ function renderPatientTerms(patient) {
   const diseases = [...new Set((patient?.domains?.MH || []).map(r => r.MHTERM).filter(Boolean))];
   const aes = [...new Set((patient?.domains?.AE || []).map(r => r.AETERM).filter(Boolean))];
   safeHtml('medsContent', meds.length ? '<div class="termchips">' + meds.map(x => termButton('medication',x)).join('') + '</div>' : '<span class="termempty">No medications at this cut.</span>');
-  safeHtml('evidenceContent', aes.length ? '<div class="termchips">' + aes.map(x => termButton('adverse_event',x)).join('') + '</div>' : '<span class="termempty">No adverse events at this cut.</span>');
+  const evidenceTerms = [...diseases.map(x => termButton('disease',x)), ...aes.map(x => termButton('adverse_event',x))];
+  safeHtml('evidenceContent', evidenceTerms.length ? '<div class="termchips">' + evidenceTerms.join('') + '</div>' : '<span class="termempty">No diseases or adverse events at this cut.</span>');
   safeHtml('labsContent', '<div class="termempty">Labs are shown in the timeline and clinical evidence above.</div>');
   safeHtml('patientTerms', diseases.length ? '<div class="termchips">' + diseases.map(x => termButton('disease',x)).join('') + '</div>' : '<span class="termempty">No medical history at this cut.</span>');
   document.querySelectorAll('.termchip').forEach(btn => btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue)));
@@ -351,6 +352,14 @@ async function handleFocus(button) {
 }
 
 function bind() {
+  document.querySelectorAll('.tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tabpane').forEach(x => x.classList.remove('active'));
+      tab.classList.add('active');
+      el('tab-' + tab.dataset.tab)?.classList.add('active');
+    });
+  });
   el('cycle')?.addEventListener('click', runCycle);
   el('askQuestion')?.addEventListener('click', askAtlas);
   el('questionInput')?.addEventListener('keydown', event => {
