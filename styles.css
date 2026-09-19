@@ -23,3 +23,15 @@
 #trace p{animation:traceIn .2s ease both}
 @keyframes traceIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 button:disabled{cursor:wait;opacity:.6}
+
+.askbar{display:flex;gap:7px;margin:10px 0 4px}
+.askbar input{flex:1;min-width:0;background:#07171b;border:1px solid #21454d;color:#dcebea;border-radius:5px;padding:8px 9px;font:8px 'DM Mono';outline:none}
+.askbar input:focus{border-color:var(--cyan);box-shadow:0 0 16px #45e8d015}
+.askbar button{background:#103b35;border:1px solid #2aa989;color:#62eacb;border-radius:5px;padding:7px 10px;font:600 8px 'DM Mono';cursor:pointer}
+.termchips{display:flex;flex-wrap:wrap;gap:5px}
+.termchip,.subjectlookup{background:#0a2426;border:1px solid #276b68;color:#65dfca;border-radius:12px;padding:5px 7px;font:7px 'DM Mono';cursor:pointer}
+.termchip:hover,.subjectlookup:hover{background:#103a38;border-color:var(--cyan);transform:translateY(-1px)}
+.termempty{color:#607a7e;font-size:7px}
+.lookupsubjects{display:flex;flex-wrap:wrap;gap:6px}
+.subjectlookup{border-radius:5px}
+#patientTerms{margin-top:6px}
