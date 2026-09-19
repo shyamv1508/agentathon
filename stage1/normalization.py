@@ -34,9 +34,15 @@ def safe_int(v):
 
 def norm_domain_row(domain,row):
     r=dict(row)
-    for k in ("LBSEQ","AESEQ","VSSEQ","EXSEQ","CMSEQ","DSSEQ","MHSEQ","EGSEQ"):
+    seq_keys=("LBSEQ","AESEQ","VSSEQ","EXSEQ","CMSEQ","DSSEQ","MHSEQ","EGSEQ")
+    for k in seq_keys:
         if k in r:
             r["_seq"]=safe_int(r[k]); break
+    else:
+        for k,v in r.items():
+            if str(k).upper().endswith("SEQ"):
+                r["_seq"]=safe_int(v); break
     r["_domain"]=domain
-    r["_date"]=parse_date(r.get("LBDTC") or r.get("AESTDTC") or r.get("VSDTC") or r.get("EXSTDTC") or r.get("CMSTDTC") or r.get("DSSTDTC") or r.get("BRTHDTC") or r.get("EGDTC"))
+    date_candidates=("LBDTC","AESTDTC","VSDTC","EXSTDTC","CMSTDTC","DSSTDTC","BRTHDTC","EGDTC","DTC","DATE","START_DATE","STARTDT")
+    r["_date"]=next((parse_date(r.get(k)) for k in date_candidates if parse_date(r.get(k))),None)
     return r
