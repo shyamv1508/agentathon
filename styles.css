@@ -568,3 +568,12 @@ body{font-size:12px}
 .decisionchip:hover{background:rgba(69,232,208,.11)}
 .watchsection ul{margin:8px 0 0 18px;color:var(--muted);line-height:1.5}
 @media(max-width:900px){.watchgrid{grid-template-columns:1fr}.watchsection.wide{grid-column:auto}}
+
+/* non-technical WATCH report */
+.watchreport h3{margin:7px 0 6px;font:600 18px 'Space Grotesk';color:#fff}
+.watchreport>p{margin:0 0 12px!important;color:#9fb2b3!important;line-height:1.6}
+.watchreportgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 13px}
+.watchreportgrid>div{padding:10px;border:1px solid rgba(69,232,208,.12);border-radius:8px;background:rgba(69,232,208,.025)}
+.watchreportgrid b,.watchreportgrid span{display:block}.watchreportgrid b{font:600 18px 'Space Grotesk';color:var(--cyan)}.watchreportgrid span{font-size:8px;color:var(--muted);margin-top:3px}
+.watchreportrows{border-top:1px solid rgba(255,255,255,.06);padding-top:5px}.watchreportrows p{margin:8px 0!important;font-size:9px!important}.watchreportrows strong{color:#dcebea}.watchreportrows span{color:var(--muted)}
+@media(max-width:700px){.watchreportgrid{grid-template-columns:repeat(2,1fr)}}
