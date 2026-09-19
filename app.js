@@ -259,36 +259,45 @@ function renderCenterPatientData(patient) {
   const domains = patient?.domains || {};
   const meds = [...new Set((domains.CM || []).map(r => r?.CMTRT).filter(Boolean))];
   const diseases = [...new Set((domains.MH || []).map(r => r?.MHTERM).filter(Boolean))];
-  const aes = (domains.AE || []).filter(r => r?.AETERM).map(r => {
-    const serious = String(r.AESER || '').toUpperCase() === 'Y' || String(r.AESHOSP || '').toUpperCase() === 'Y';
-    return '<div class="center-list-row"><div><b>' + escapeHtml(r.AETERM) + '</b><small>' +
-      escapeHtml([r.AESTDTC, r.AEENDTC].filter(Boolean).join(' → ') || 'Date not recorded') +
-      '</small></div><strong>' + (serious ? 'SERIOUS' : 'NON-SERIOUS') + '</strong></div>';
-  });
-  const labs = (domains.LB || []).filter(r => r?.LBTEST || r?.LBORRES != null || r?.LBSTRESN != null).map(r => {
-    const test = r.LBTEST || r.LBTESTCD || 'Lab';
+  const labs = (domains.LB || []).filter(r => r && (r.LBTEST || r.LBTESTCD || r.LBORRES != null || r.LBSTRESN != null));
+  const aes = (domains.AE || []).filter(r => r?.AETERM);
+
+  const labRows = labs.map(r => {
+    const test = r.LBTEST || r.LBTESTCD || 'LAB';
     const value = r.LBSTRESN ?? r.LBORRES ?? '—';
     const unit = r.LBSTRESU || '';
     const date = r.LBDTC || r.LBDY || '';
     return '<div class="center-list-row"><div><b>' + escapeHtml(test) + '</b><small>' +
-      escapeHtml(date) + '</small></div><strong>' + escapeHtml(String(value)) +
-      (unit ? ' ' + escapeHtml(unit) : '') + '</strong></div>';
+      escapeHtml(date) + '</small></div><strong>' + escapeHtml(String(value) + (unit ? ' ' + unit : '')) + '</strong></div>';
   });
 
-  safeHtml('centerLabsContent', labs.length ? labs.join('') : '<span class="termempty">No laboratory records at this cut.</span>');
-  safeHtml('centerMedsContent', meds.length
-    ? '<div class="center-chip-list">' + meds.map(x => termButton('medication', x)).join('') + '</div>'
-    : '<span class="termempty">No medications at this cut.</span>');
-  safeHtml('centerDiseaseContent', diseases.length
-    ? '<div class="center-chip-list">' + diseases.map(x => termButton('disease', x)).join('') + '</div>'
-    : '<span class="termempty">No medical history / diseases at this cut.</span>');
-  safeHtml('centerAeContent', aes.length ? aes.join('') : '<span class="termempty">No adverse events at this cut.</span>');
+  const medRows = meds.map(x => termButton('medication', x)).join('');
+  const diseaseRows = diseases.map(x => termButton('disease', x)).join('');
+  const aeRows = aes.map(r => {
+    const serious = String(r.AESER || '').toUpperCase() === 'Y' || String(r.AESHOSP || '').toUpperCase() === 'Y';
+    return '<div class="center-list-row"><div><b>' + escapeHtml(r.AETERM) + '</b><small>' +
+      escapeHtml(r.AESTDTC || 'Date not recorded') + '</small></div><strong>' + (serious ? 'SERIOUS' : 'NON-SERIOUS') + '</strong></div>';
+  }).join('');
+
+  safeHtml('centerLabsContent', labs.length ? labRows.join('') : '<span class="termempty">No laboratory records at this cut.</span>');
+  safeHtml('centerMedsContent', meds.length ? '<div class="termchip-list center-chip-list">' + medRows + '</div>' : '<span class="termempty">No medications at this cut.</span>');
+  safeHtml('centerDiseaseContent', diseases.length ? '<div class="termchip-list center-chip-list">' + diseaseRows + '</div>' : '<span class="termempty">No medical history / diseases at this cut.</span>');
+  safeHtml('centerAeContent', aes.length ? aeRows : '<span class="termempty">No adverse events at this cut.</span>');
+
   safeText('centerOverviewContext',
-    'Subject has ' + (labs.length) + ' lab records, ' + meds.length + ' medication terms, ' +
-    diseases.length + ' medical-history terms, and ' + aes.length + ' adverse-event records at cut ' + currentCut() + '.');
+    'Subject has ' + labs.length + ' laboratory records, ' + meds.length +
+    ' medication terms, ' + diseases.length + ' medical-history terms, and ' +
+    aes.length + ' adverse-event records at cut ' + currentCut() + '.');
+
+  const latest = labs[labs.length - 1];
+  if (latest) {
+    const test = latest.LBTEST || latest.LBTESTCD || 'LAB';
+    const value = latest.LBSTRESN ?? latest.LBORRES ?? '—';
+    safeText('centerTimelineLab', test + ' ' + value + (latest.LBSTRESU ? ' ' + latest.LBSTRESU : ''));
+  }
 
   document.querySelectorAll('#centerPatient .termchip').forEach(btn => {
-    btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue));
+    btn.onclick = () => reverseLookup(btn.dataset.termType, btn.dataset.termValue);
   });
 }
 
@@ -416,13 +425,11 @@ async function focusSubject(subject, question, label) {
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
   const workspace = document.querySelector('.workspace');
-  const patientView = el('centerPatientView');
   const layerView = el('centerLayerView');
 
   if (workspace) workspace.classList.add('patient-center-mode');
   if (graph) graph.classList.add('centerhidden');
   if (center) center.classList.remove('hidden');
-  if (patientView) patientView.classList.remove('hidden');
   if (layerView) layerView.classList.add('hidden');
   resetCenterTabs();
 
