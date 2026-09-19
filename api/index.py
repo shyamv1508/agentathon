@@ -112,6 +112,42 @@ def query(q: str = "", cut: int = 12):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+
+
+@app.get("/api/patient/{usubjid}")
+def patient(usubjid: str, cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    if _GRAPH.cut != cut:
+        _GRAPH.build(cut)
+    return _GRAPH.patient360(usubjid)
+
+
+@app.get("/api/lookup")
+def lookup(type: str = "", value: str = "", cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    if not value.strip():
+        raise HTTPException(status_code=400, detail="Lookup value is required")
+    if _GRAPH.cut != cut:
+        _GRAPH.build(cut)
+    needle = value.strip().lower()
+    if type.lower() == "medication":
+        rows = _GRAPH.rows.get("CM", [])
+        matches = [r for r in rows if needle in str(r.get("CMTRT", "")).lower()]
+    elif type.lower() == "disease":
+        rows = _GRAPH.rows.get("MH", [])
+        matches = [r for r in rows if needle in str(r.get("MHTERM", "")).lower()]
+    elif type.lower() == "adverse_event":
+        rows = _GRAPH.rows.get("AE", [])
+        matches = [r for r in rows if needle in str(r.get("AETERM", "")).lower()]
+    else:
+        raise HTTPException(status_code=400, detail="type must be medication, disease, or adverse_event")
+    subjects = sorted({r.get("USUBJID") for r in matches if r.get("USUBJID")})
+    return {"type": type, "value": value, "subjects": subjects, "count": len(subjects), "evidence": [
+        {"domain": r.get("_domain"), "usubjid": r.get("USUBJID"), "seq": r.get("_seq")} for r in matches
+    ]}
+
 @app.get("/api/cycle")
 def cycle(cut: int = 12):
     if cut < 1 or cut > 12:
