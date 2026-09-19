@@ -1,69 +1,48 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS Nexus — Mission Control</title><link rel="stylesheet" href="/styles.css"><style>
-/* Atom-style orbital planes: each ring rotates around a perpendicular axis */
-.graph{perspective:1000px;transform-style:preserve-3d;transform-origin:50% 50%}
-.ring{transform-style:preserve-3d;backface-visibility:visible}
-.ring1{animation:orbitPerpX 7s linear infinite!important}
-.ring2{animation:orbitPerpY 10s linear infinite!important}
-.ring3{animation:orbitPerpZ 14s linear infinite!important}
-@keyframes orbitPerpX{from{transform:translate(-50%,-50%) rotateX(72deg) rotateZ(0deg)}to{transform:translate(-50%,-50%) rotateX(72deg) rotateZ(360deg)}}
-@keyframes orbitPerpY{from{transform:translate(-50%,-50%) rotateY(72deg) rotateZ(0deg)}to{transform:translate(-50%,-50%) rotateY(72deg) rotateZ(360deg)}}
-@keyframes orbitPerpZ{from{transform:translate(-50%,-50%) rotateZ(12deg) rotate(0deg)}to{transform:translate(-50%,-50%) rotateZ(12deg) rotate(360deg)}}
-</style></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS · Clinical Review</title><link rel="stylesheet" href="/styles.css"></head>
 <body>
-<div class="app">
+<div id="boot" class="boot"><div class="bootlogo">A</div><h1>ATLAS <span>CLINICAL REVIEW</span></h1><p>Autonomous Clinical Trial Engine · Stage 1 & Stage 2 Unified Review Environment</p><div class="features"><button class="feature" data-boot="Patient 360 & Graph"><b>01</b><strong>Patient 360 & Graph</strong><small>Unifies disconnected clinical domains into a time-aware profile with normalized lab evidence.</small></button><button class="feature" data-boot="Autonomous ReviewCrew"><b>02</b><strong>Autonomous ReviewCrew</strong><small>Detects contradictions, protocol deviations and escalation candidates.</small></button><button class="feature" data-boot="Glass-Box Evidence"><b>03</b><strong>Glass-Box Evidence</strong><small>Every claim stays tied to source domain, subject and sequence.</small></button></div><button id="initialize" class="initialize">INITIALIZE ATLAS & LOAD DATA CUT</button><div id="bootlog"></div></div>
+
+<div id="app" class="app hidden">
 <header class="topbar">
-  <div class="brand"><div class="logo">A</div><div><div class="brandname">ATLAS <span>NEXUS</span></div><div class="sub">AUTONOMOUS CLINICAL STUDY INTELLIGENCE</div></div></div>
-  <div class="study"><span class="live">● LIVE</span><b>STUDY-042</b><span>·</span><span>DATA CUT <select id="cut"><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></span><span>·</span><span>PROTOCOL <b id="protocol">v3</b></span></div>
-  <button id="bell" class="iconbtn">◈ <i id="pending">6</i></button>
+  <div class="brand"><div class="logo">A</div><div><b>ATLAS <span>CLINICAL REVIEW</span></b><small>STUDY-042 · AUTONOMOUS REVIEW ENVIRONMENT</small></div></div>
+  <div class="search"><span>⌕</span><input id="questionInput" placeholder="Ask Atlas anything…" autocomplete="off"><button id="askQuestion">ASK</button></div>
+  <div class="command"><span class="live">● LIVE</span><label>DATA CUT <select id="cut"><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label><button id="help">? HELP & PROTOCOL</button><button id="bell">◈ <i id="pending">0</i></button></div>
 </header>
-<section class="pipeline">
-<div class="pnode active" id="p0"><span>01</span><b>DETECT</b><em>ACTIVE</em></div><div class="pnode " id="p1"><span>02</span><b>MEDICAL REVIEW</b><em>READY</em></div><div class="pnode " id="p2"><span>03</span><b>DATA MANAGER</b><em>READY</em></div><div class="pnode " id="p3"><span>04</span><b>COMPLIANCE</b><em>READY</em></div><div class="pnode " id="p4"><span>05</span><b>HUMAN GATE</b><em>READY</em></div><div class="pnode " id="p5"><span>06</span><b>EXECUTE</b><em>READY</em></div>
-<div class="aggregate"><small>AGGREGATE</small><b>● MONITORING</b></div>
-</section>
-<main class="workspace">
-<section class="leftpanel">
-  <div class="paneltitle">MISSION CONTROL</div>
-  <div class="metric"><small>ACTIVE SUBJECTS</small><b id="subjects">—</b><span id="siteCount">loading study graph</span></div>
-  <div class="metric"><small>GRAPH RECORDS</small><b id="records">—</b><span id="cutCount">loading cuts</span></div>
-  <div class="metric critical"><small>CRITICAL SIGNALS</small><b id="critical">—</b><span>live findings at selected cut</span></div>
-  <div class="sectionlabel">SITE HEALTH</div>
-  <div class="sitehealth"><div><i class="ok"></i><b>S01</b><span>COMPLIANT</span></div><div><i class="warn"></i><b>S08</b><span>WARNING</span></div><div><i class="bad"></i><b>S07</b><span>QUARANTINED</span></div></div>
-  <div class="sectionlabel">FOCUS</div>
-  <button class="focus activefocus" data-subject="042-S07-001" data-query="What is the patient360 for 042-S07-001?">042-S07-001 <span>HY'S LAW</span></button>
-  <button class="focus" data-subject="042-S02-004" data-query="What serious adverse event does 042-S02-004 have?">042-S02-004 <span>SAE</span></button>
-  <button class="focus" data-subject="042-S11-005" data-query="What findings are present for 042-S11-005?">042-S11-005 <span>DATA QUERY</span></button>
-</section>
-<section class="grapharea">
-  <div class="graphhead"><b>3D ORBITAL KNOWLEDGE GRAPH</b><span>semantic view · click any node to focus</span></div>
-  <div class="graph">
-    <div class="ring ring3"></div><div class="ring ring2"></div><div class="ring ring1"></div>
-    <div class="link l1"></div><div class="link l2"></div><div class="link l3"></div><div class="link l4"></div>
-    <button class="core node">ATLAS<small>PROTOCOL</small></button>
-    <button class="site s1 node">S07</button><button class="site s2 node">S02</button><button class="site s3 node">S11</button><button class="site s4 node">S08</button>
-    <button class="subject n1 node" data-subject="042-S07-001">S07-001</button><button class="subject n2 node" data-subject="042-S02-004">S02-004</button><button class="subject n3 node" data-subject="042-S11-005">S11-005</button>
-    <button class="sat a1 node">ALT</button><button class="sat a2 node">BILI</button><button class="sat a3 node" id="aeNode" title="Reverse lookup Cellulitis">AE</button>
-    <div class="quarantine">!</div>
-    <div id="nodePreview" class="nodepreview" aria-live="polite"></div>
+
+<main class="dashboard">
+<aside class="roster">
+  <div class="zonehead"><div><small>PATIENT ROSTER</small><h2>Study Cohort</h2></div><span id="rosterCount">—</span></div>
+  <div class="rosterTools"><input id="rosterSearch" placeholder="Filter subject…"><button id="clearSelect">CLEAR</button></div>
+  <div id="rosterList" class="rosterList"><div class="loading">Loading cohort…</div></div>
+</aside>
+
+<section class="stage">
+  <div class="stagebar"><div><small id="stageMode">MACRO NAVIGATOR</small><b id="stageTitle">3D ORBITAL KNOWLEDGE GRAPH</b></div><div class="stageactions"><span id="protocol">v3</span><button id="compareBtn" class="hidden">COMPARE</button><button id="macroBtn" class="hidden">RETURN TO GRAPH</button></div></div>
+  <div id="macro" class="macro">
+    <div class="graph">
+      <div class="ring ring3"></div><div class="ring ring2"></div><div class="ring ring1"></div>
+      <div class="link l1"></div><div class="link l2"></div><div class="link l3"></div><div class="link l4"></div>
+      <button class="core node">ATLAS<small>PROTOCOL</small></button>
+      <button class="site s1 node">S07</button><button class="site s2 node">S02</button><button class="site s3 node">S11</button><button class="site s4 node">S08</button>
+      <button class="subject n1 node" data-subject="042-S07-001">S07-001</button><button class="subject n2 node" data-subject="042-S02-004">S02-004</button><button class="subject n3 node" data-subject="042-S11-005">S11-005</button>
+      <button class="sat a1 node">ALT</button><button class="sat a2 node">BILI</button><button class="sat a3 node" id="aeNode">AE</button><div class="quarantine">!</div><div id="nodePreview" class="nodepreview"></div>
+    </div>
+    <div class="legend"><span>● protocol/site</span><span>● deviation</span><span>● clinical alert</span><span>! quarantine</span></div>
   </div>
-  <div class="legend"><span><i class="cyan"></i> protocol/site</span><span><i class="amber"></i> deviation</span><span><i class="crimson"></i> critical</span><span><i class="pulse"></i> quarantined</span></div>
+  <div id="patientStage" class="patientStage hidden"></div>
 </section>
-<aside class="patient">
-  <div class="asidehead"><div><small>PATIENT 360</small><h2 id="patient">042-S07-001</h2></div><span class="badge">CRITICAL</span></div>
-  <div class="meta">SITE S07 · SCREENING → TREATMENT</div>
-  <div class="tabs"><button class="tab active" data-tab="overview">OVERVIEW</button><button class="tab" data-tab="labs">LABS</button><button class="tab" data-tab="meds">MEDS</button><button class="tab" data-tab="disease">DISEASE</button></div>
-  <div id="tab-overview" class="tabpane active"><div class="timeline"><div><i></i><b>SCREENING</b><small>Day −7 · baseline</small></div><div class="hot"><i></i><b>LAB SPIKE</b><small>ALT 239.7 U/L · BILI 5.38 mg/dL</small></div><div><i></i><b>DOSE</b><small>10 mg QD · EX seq 1</small></div></div>
-  <div class="evidencecard"><small>CLINICAL SIGNAL</small><b>Hy's Law candidate</b><p>ALT > 3× ULN and bilirubin > 2× ULN within 14 days.</p></div>
-  <div class="evidencecard"><small>EVIDENCE</small><b>LB · 042-S07-001 · seq 1</b><p>3.995 µkat/L converted to 239.7 U/L.</p></div>
-  <div class="evidencecard"><small>ATLAS LIVE ANSWER</small><b id="liveAnswerTitle">Select a subject or signal</b><p id="liveAnswer">The panel is connected to StudyGraph. Clicking a focus node runs a real evidence query at the selected cut.</p></div><div class="evidencecard"><small>MEDICAL CONTEXT</small><b id="protocolContext">Protocol v3</b><p id="medicalContext">Evidence is resolved from the active graph cut; no UI value is treated as a source.</p></div>
-  </div><div id="tab-labs" class="tabpane"><div id="labsContent" class="tabcontent"></div></div><div id="tab-meds" class="tabpane"><div id="medsContent" class="tabcontent"></div></div><div id="tab-disease" class="tabpane"><div id="diseaseContent" class="tabcontent"></div></div>
-  <button id="gate" class="gate">OPEN HUMAN GATE <span>6</span></button>
-  <button id="reverse" class="reverse">↗ Reverse lookup · Cellulitis (AESHOSP=Y) → 042-S02-004</button>
-  <div class="terminal"><div class="termhead"><span>ATLAS AGENT // QUERY</span><span id="termstatus">READY</span></div><div class="askbar"><input id="questionInput" type="text" placeholder="Ask ATLAS about a subject, medication, disease, lab, or finding…" autocomplete="off"><button id="askQuestion">ASK</button></div><div id="trace"><p><b>[detect]</b> 241 subjects indexed · 26,482 records visible</p><p><b>[medical_review]</b> Clinical signals separated from data errors</p><p><b>[compliance]</b> Protocol v3 rules loaded</p><p><b>[human_gate]</b> 6 escalations awaiting review</p></div><button id="cycle">▶ START CYCLE</button></div>
+
+<aside class="evidence">
+  <section class="tracePanel"><div class="zonehead"><div><small>LIVE TRACE</small><h2>ReviewCrew</h2></div><span id="traceStatus">READY</span></div><div id="trace"><p><b>[system]</b> Awaiting ATLAS initialization…</p></div><button id="cycle" class="cycle">▶ RUN MONITOR CYCLE</button></section>
+  <section class="glass"><div class="zonehead"><div><small>GLASS-BOX EVIDENCE</small><h2 id="evidenceTitle">Evidence Chain</h2></div></div><div id="evidenceContent"><div class="empty">Select a patient, disease, signal or alert to inspect exact source evidence.</div></div></section>
 </aside>
 </main>
-<footer class="footer"><span>ATLAS NEXUS</span><span id="footerStatus">Evidence-first · source identity preserved</span><button id="report">CYCLE REPORT</button></footer>
+
+<footer class="scrubber"><span>TRIAL TIME</span><b id="scrubLabel">CUT 12 · PROTOCOL v3</b><input id="scrubber" type="range" min="1" max="12" value="12"><div class="scrubends"><span>V1</span><span>AMENDMENT 3</span></div></footer>
 </div>
-<div id="queryModal" class="modal hidden"><div class="modalbox querybox"><div class="mhead"><div><small>ATLAS LIVE ANSWER</small><h2 id="queryTitle">Patient 360</h2></div><button id="queryClose">×</button></div><div class="record"><div id="queryAnswer">Querying StudyGraph…</div></div><div class="evidencecard"><small>RELATED SUBJECTS</small><div id="lookupSubjects" class="lookupsubjects">—</div></div><div class="evidencecard"><small>SOURCE RECORDS</small><div id="queryEvidence">Loading…</div></div></div></div>
-<div id="modal" class="modal hidden"><div class="modalbox"><div class="mhead"><div><small>HUMAN GATE · <span id="gateEscalation">ESCALATION</span></small><h2 id="gateCode">Awaiting escalation</h2></div><button id="close">×</button></div><div class="record"><b id="gateSubject">—</b><span id="gateRecord">—</span><p id="gateSummary">Select an escalation to review.</p><code id="gateEvidence">—</code></div><div id="clarify" class="clarify hidden">↻ Fetching context from StudyGraph…</div><div class="actions"><button id="reject">REJECT</button><button id="clar">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
+
+<div id="helpModal" class="modal hidden"><div class="modalbox"><button class="close" data-close="helpModal">×</button><small>ATLAS HELP HUB</small><h2>Clinical review at a glance</h2><div class="helpgrid"><div><b>Patient 360</b><p>Labs, AEs, concomitant medications, medical history, dosing and source records.</p></div><div><b>Hy’s Law</b><p>ALT or AST &gt;3× ULN plus bilirubin &gt;2× ULN within 14 days, with alternative explanations considered.</p></div><div><b>Evidence discipline</b><p>Answers remain grounded in StudyGraph RecordRefs: domain, subject and sequence.</p></div><div><b>Human Gate</b><p>Escalations can be approved, rejected into monitoring, or clarified with graph context.</p></div></div></div></div>
+<div id="queryModal" class="modal hidden"><div class="modalbox"><button class="close" data-close="queryModal">×</button><small>ATLAS LIVE ANSWER</small><h2 id="queryTitle">Query</h2><div id="queryAnswer" class="answer"></div><div class="twocol"><div><small>RELATED SUBJECTS</small><div id="lookupSubjects"></div></div><div><small>SOURCE RECORDS</small><div id="queryEvidence"></div></div></div></div></div>
+<div id="gateModal" class="modal hidden"><div class="modalbox"><button class="close" data-close="gateModal">×</button><small>HUMAN GATE</small><h2 id="gateCode">Escalation</h2><div id="gateBody"></div><div class="actions"><button id="reject">REJECT</button><button id="clarify">CLARIFY</button><button id="approve">APPROVE</button></div></div></div>
 <script src="/app.js?v=20260920"></script></body></html>
