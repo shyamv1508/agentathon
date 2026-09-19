@@ -342,11 +342,44 @@ async function runCycle() {
   }
 }
 
+let activeGate = null;
+
+async function loadHumanGate() {
+  openModal('modal');
+  safeText('gateCode', 'Loading…');
+  safeText('gateSubject', '—');
+  safeText('gateRecord', '—');
+  safeText('gateSummary', 'Loading pending escalations…');
+  safeText('gateEvidence', '—');
+  try {
+    const data = await apiFetch('/api/escalations?cut=' + currentCut());
+    const items = Array.isArray(data.escalations) ? data.escalations : [];
+    activeGate = items[0] || null;
+    if (!activeGate) {
+      safeText('gateCode', 'No pending escalation');
+      safeText('gateSummary', 'All escalations at this cut have been handled.');
+      safeText('gateEvidence', '—');
+      return;
+    }
+    safeText('gateEscalation', 'ESCALATION ' + String(items.indexOf(activeGate) + 1).padStart(2, '0'));
+    safeText('gateCode', activeGate.code || 'ESCALATION');
+    safeText('gateSubject', activeGate.usubjid || 'Site-level');
+    safeText('gateRecord', (activeGate.evidence?.[0]?.domain || '') + (activeGate.evidence?.[0]?.seq != null ? ' · seq ' + activeGate.evidence[0].seq : ''));
+    safeText('gateSummary', activeGate.summary || 'No summary available.');
+    const ev = (activeGate.evidence || []).map(e => [e.domain, e.usubjid, e.seq != null ? 'seq ' + e.seq : ''].filter(Boolean).join(' · '));
+    safeText('gateEvidence', ev.join(' | ') || 'No record evidence');
+  } catch (error) {
+    safeText('gateCode', 'Gate unavailable');
+    safeText('gateSummary', error.message);
+  }
+}
+
 async function gateDecision(decision, reason = '') {
+  if (!activeGate) return;
   const payload = {
     cut: currentCut(),
-    code: 'SAE_MISCODED',
-    usubjid: '042-S02-004',
+    code: activeGate.code,
+    usubjid: activeGate.usubjid,
     decision,
     reason
   };
@@ -357,7 +390,7 @@ async function gateDecision(decision, reason = '') {
     body: JSON.stringify(payload)
   });
 
-  trace('<b>[human_gate]</b> ' + decision + ' SAE_MISCODED → ' + (result.escalation?.status || decision.toLowerCase()));
+  trace('<b>[human_gate]</b> ' + decision + ' ' + activeGate.code + ' → ' + (result.escalation?.status || decision.toLowerCase()));
   safeText('liveAnswerTitle', 'Human Gate · ' + decision);
   safeText('liveAnswer', result.escalation?.summary || ('Decision recorded: ' + decision));
   return result;
@@ -393,8 +426,8 @@ function bind() {
     }
   });
 
-  el('gate')?.addEventListener('click', () => openModal('modal'));
-  el('bell')?.addEventListener('click', () => openModal('modal'));
+  el('gate')?.addEventListener('click', loadHumanGate);
+  el('bell')?.addEventListener('click', loadHumanGate);
   el('close')?.addEventListener('click', () => closeModal('modal'));
   el('queryClose')?.addEventListener('click', () => closeModal('queryModal'));
 
@@ -423,7 +456,7 @@ function bind() {
 
     try {
       await gateDecision('CLARIFY', 'Medical monitor requested additional graph context.');
-      const data = await apiQuery('What is the patient360 for 042-S02-004?');
+      const data = await apiQuery('What is the patient360 for ' + activeGate.usubjid + '?');
       if (status) status.textContent = '✓ Context found: ' + (data.text || 'evidence loaded');
     } catch (error) {
       if (status) status.textContent = '✕ ' + error.message;
