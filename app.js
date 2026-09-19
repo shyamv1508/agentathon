@@ -448,32 +448,32 @@ function activateCategory(category) {
     safety: {
       title: 'Safety intelligence',
       text: 'Which subjects have Hy’s Law findings?',
-      insight: ['SAFETY', 'Clinical risk layer', 'Hy’s Law · serious AE · prohibited medication', 'Click a subject branch to open Patient 360.']
+      insight: ['SAFETY', 'Clinical risk layer', 'Hy’s Law · serious AE · prohibited medication', 'Select a highlighted subject to inspect source evidence.']
     },
     subjects: {
       title: 'Subject intelligence',
-      text: 'What findings are present for 042-S07-001?',
-      insight: ['SUBJECTS', 'Patient population', '241 subjects indexed across the active cut', 'Click any subject branch for Patient 360.']
+      text: 'What is the patient360 for 042-S07-001?',
+      insight: ['SUBJECTS', 'Patient population', '241 subjects indexed across the active cut', 'Select a subject node to open Patient 360.']
     },
     labs: {
       title: 'Laboratory intelligence',
       text: 'Which subjects have Hy’s Law findings?',
-      insight: ['LABS', 'Clinical measurements', 'ALT · AST · bilirubin · reference ranges', 'Signals stay connected to source records.']
+      insight: ['LABS', 'Clinical measurements', 'ALT · AST · bilirubin · reference ranges', 'Select the ALT or BILI signal to inspect evidence.']
     },
     monitoring: {
       title: 'Monitoring intelligence',
-      text: 'Which subjects have serious adverse events?',
-      insight: ['MONITORING', 'Sites & oversight', 'Site health · escalations · human gate', 'Use the right panel for detailed review.']
+      text: '',
+      insight: ['MONITORING', 'Sites & oversight', 'Site health · escalations · human gate', 'Open Human Gate for the current cut.']
     },
     events: {
       title: 'Event intelligence',
       text: 'Which subjects have serious adverse events?',
-      insight: ['EVENTS', 'Adverse events', 'Seriousness · hospitalization · subject evidence', 'Reverse lookup returns matching subjects.']
+      insight: ['EVENTS', 'Adverse events', 'Seriousness · hospitalization · subject evidence', 'Select the AE signal to inspect matching subjects.']
     },
     dosing: {
       title: 'Dosing intelligence',
       text: 'Which subjects have dosing findings?',
-      insight: ['DOSING', 'Exposure & protocol', 'Expected dose · route · frequency · deviations', 'Evidence is resolved at the selected cut.']
+      insight: ['DOSING', 'Exposure & protocol', 'Expected dose · route · frequency · deviations', 'Select a subject branch to inspect dosing evidence.']
     }
   };
   const item = map[category];
@@ -497,7 +497,15 @@ function activateCategory(category) {
     '<span>' + escapeHtml(item.insight[2]) + '</span>' +
     '<em>' + escapeHtml(item.insight[3]) + '</em>');
   trace('<b>[center]</b> ' + escapeHtml(item.title) + ' selected');
-  showQuery(item.title, item.text, {});
+  if (category === 'monitoring') {
+    loadHumanGate();
+  } else if (category === 'subjects') {
+    focusSubject('042-S07-001', 'What is the patient360 for 042-S07-001?', '042-S07-001');
+  } else if (category === 'labs') {
+    showQuery(item.title, item.text, {});
+  } else if (category === 'safety' || category === 'events' || category === 'dosing') {
+    showQuery(item.title, item.text, {});
+  }
 }
 
 function setupNodeHoverPreview() {
