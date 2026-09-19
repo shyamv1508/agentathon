@@ -110,7 +110,7 @@ class StudyWatch:
     def _quarantine(self):
         """Temporarily exclude quarantined/untrusted records from safety analysis."""
         g=self.crew.atlas.graph; sites=set(self.state["quarantined_sites"]); bad={(x["site"],x["test"]) for x in self.state["untrusted_lab"]}
-        backup={d:list(rows) for d,rows in g.rows.items()}
+        backup={d:[dict(r) for r in rows] for d,rows in g.rows.items()}
         for d,rows in list(g.rows.items()):
             g.rows[d]=[r for r in rows if self._site(r.get("USUBJID")) not in sites and not (d=="LB" and (self._site(r.get("USUBJID")),str(r.get("LBTESTCD") or r.get("LBTEST") or "").upper()) in bad)]
         g._reindex_rows()
