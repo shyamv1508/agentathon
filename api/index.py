@@ -161,6 +161,30 @@ def lookup(type: str = "", value: str = "", cut: int = 12):
         {"domain": r.get("_domain"), "usubjid": r.get("USUBJID"), "seq": r.get("_seq")} for r in matches
     ]}
 
+
+@app.get("/api/roster")
+def roster(cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    if _GRAPH.cut != cut:
+        _GRAPH.build(cut)
+    dm = {r.get("USUBJID"): r for r in _GRAPH.rows.get("DM", [])}
+    serious = set()
+    for r in _GRAPH.rows.get("AE", []):
+        if str(r.get("AESER", "")).upper() == "Y" or str(r.get("AESHOSP", "")).upper() == "Y":
+            if r.get("USUBJID"): serious.add(r["USUBJID"])
+    from stage1.rules import hys_law_candidates, prohibited_cm, dosing_findings
+    hys = {x["usubjid"] for x in hys_law_candidates(_GRAPH.rows.get("LB", []), _GRAPH.reference_ranges)}
+    prohibited = {x["usubjid"] for x in prohibited_cm(_GRAPH.rows.get("CM", []), protocol_version(cut))}
+    dosing = {x["usubjid"] for x in dosing_findings(_GRAPH.rows.get("EX", []))}
+    rows = []
+    for subject, r in dm.items():
+        site = str(r.get("SITEID") or subject.split("-")[1] if "-" in subject else "")
+        status = "clinical" if subject in serious or subject in hys else "missing" if subject in dosing or subject in prohibited else "compliant"
+        rows.append({"usubjid": subject, "site": site, "sex": r.get("SEX"), "age": r.get("AGE"), "status": status})
+    rows.sort(key=lambda x: (x["site"], x["usubjid"]))
+    return {"cut": cut, "subjects": rows}
+
 @app.get("/api/escalations")
 def escalations(cut: int = 12):
     if cut < 1 or cut > 12:
