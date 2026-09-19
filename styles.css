@@ -266,3 +266,20 @@ body{font-size:12px}
 .a2{left:calc(52% + 220px);top:calc(50% - 105px)}
 .a3{left:calc(52% + 278px);top:50%}
 .quarantine{left:calc(52% - 278px);top:50%}
+
+
+/* static orbital rings + clean red signal nodes */
+.ring,.ring1,.ring2,.ring3{
+  animation:none!important;
+}
+.quarantine{
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  font-size:0;
+  border-color:var(--red);
+  background:#2a1713;
+  box-shadow:0 0 16px rgba(255,118,107,.22);
+}
+.quarantine::after{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 9px var(--red)}
