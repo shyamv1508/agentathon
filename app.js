@@ -402,6 +402,97 @@ async function handleFocus(button) {
   await focusSubject(button.dataset.subject, button.dataset.query, button.querySelector('span')?.textContent || 'Subject finding');
 }
 
+
+function setupNodeHoverPreview() {
+  const graph = document.querySelector('.graph');
+  const preview = document.querySelector('#nodePreview');
+  if (!graph || !preview) return;
+
+  const info = node => {
+    const cut = currentCut();
+    const protocol = protocolFor(cut);
+
+    if (node.classList.contains('core')) return [
+      'ATLAS CORE',
+      'Protocol intelligence',
+      'Cut ' + cut + ' · Protocol ' + protocol,
+      'Click action: opens Protocol Intelligence and answers which protocol version is active at the selected cut.'
+    ];
+
+    if (node.classList.contains('site')) {
+      const id = node.textContent.trim();
+      const questions = {
+        S07: 'Which subjects have Hy’s Law findings?',
+        S02: 'Which subjects have serious adverse events?',
+        S11: 'What findings are present for 042-S11-005?',
+        S08: 'Which subjects have prohibited concomitant medications?'
+      };
+      return [
+        'SITE ' + id,
+        'Site intelligence',
+        'Click action: opens site intelligence.',
+        'Query: ' + (questions[id] || 'What findings are present?')
+      ];
+    }
+
+    if (node.classList.contains('subject')) {
+      const id = node.dataset.subject || node.textContent.trim();
+      return [
+        id,
+        'Patient 360',
+        'Click action: loads the selected subject.',
+        'Shows labs · adverse events · concomitant medications · medical history · dosing · source evidence.'
+      ];
+    }
+
+    if (node.classList.contains('sat')) {
+      const id = node.textContent.trim();
+      const questions = {
+        ALT: 'Which subjects have Hy’s Law findings?',
+        BILI: 'Which subjects have Hy’s Law findings?',
+        AE: 'Which subjects have serious adverse events?'
+      };
+      return [
+        id + ' SIGNAL',
+        'Clinical evidence signal',
+        'Click action: opens the matching signal lookup.',
+        'Query: ' + (questions[id] || 'Which subjects have Hy’s Law findings?')
+      ];
+    }
+
+    return null;
+  };
+
+  graph.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('mouseenter', () => {
+      const data = info(node);
+      if (!data) return;
+      preview.innerHTML =
+        '<b>' + escapeHtml(data[0]) + '</b>' +
+        '<small><strong>' + escapeHtml(data[1]) + '</strong><br>' +
+        escapeHtml(data[2]) + '<br>' + escapeHtml(data[3]) + '</small>';
+
+      const nr = node.getBoundingClientRect();
+      const gr = graph.getBoundingClientRect();
+      const w = Math.min(360, Math.max(285, gr.width * .27));
+      const h = 125;
+      let left = nr.right - gr.left + 14;
+      let top = nr.top - gr.top - 12;
+
+      if (left + w > gr.width - 12) left = nr.left - gr.left - w - 14;
+      if (top + h > gr.height - 12) top = gr.height - h - 12;
+      if (top < 12) top = 12;
+      if (left < 12) left = 12;
+
+      preview.style.width = w + 'px';
+      preview.style.left = left + 'px';
+      preview.style.top = top + 'px';
+      preview.classList.add('show');
+    });
+    node.addEventListener('mouseleave', () => preview.classList.remove('show'));
+  });
+}
+
 function bind() {
   document.querySelectorAll('.tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -549,6 +640,7 @@ function bind() {
 
 async function start() {
   bind();
+  setupNodeHoverPreview();
   setPipeline(0, -1);
   try {
     await loadCut(currentCut());
