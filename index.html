@@ -37,13 +37,48 @@
   <div class="graphhead"><b>STUDY INTELLIGENCE CONSOLE</b><span>select a layer · inspect evidence</span></div>
   <div id="centerPatient" class="centerpatient hidden">
     <div class="centerpatient-head">
-      <div><small>PATIENT 360 · CENTER FOCUS</small><h2 id="centerPatientId">—</h2><span id="centerPatientMeta">Loading subject evidence…</span></div>
+      <div><small id="centerPatientKicker">PATIENT 360 · CENTER FOCUS</small><h2 id="centerPatientId">—</h2><span id="centerPatientMeta">Loading subject evidence…</span></div>
       <button id="centerPatientClose">← BACK TO GRAPH</button>
     </div>
-    <div class="centerpatient-grid">
-      <div class="centercard"><small>CLINICAL STATUS</small><b id="centerStatus">—</b><p id="centerAnswer">Fetching StudyGraph evidence…</p></div>
-      <div class="centercard"><small>PROTOCOL</small><b id="centerProtocol">—</b><p id="centerContext">—</p></div>
-      <div class="centercard wide"><small>SOURCE EVIDENCE</small><div id="centerEvidence">Loading…</div></div>
+
+    <div id="centerPatientView">
+      <div class="centerpatient-grid">
+        <div class="centercard"><small>CLINICAL STATUS</small><b id="centerStatus">—</b><p id="centerAnswer">Fetching live evidence from StudyGraph…</p></div>
+        <div class="centercard"><small>PROTOCOL</small><b id="centerProtocol">—</b><p id="centerContext">—</p></div>
+        <div class="centercard wide"><small>SOURCE EVIDENCE</small><div id="centerEvidence">Loading…</div></div>
+      </div>
+
+      <div class="center-tabs" role="tablist" aria-label="Patient 360 sections">
+        <button class="center-tab active" data-center-tab="overview" type="button">OVERVIEW</button>
+        <button class="center-tab" data-center-tab="labs" type="button">LABS</button>
+        <button class="center-tab" data-center-tab="meds" type="button">MEDICATIONS</button>
+        <button class="center-tab" data-center-tab="disease" type="button">DISEASES</button>
+        <button class="center-tab" data-center-tab="ae" type="button">ADVERSE EVENTS</button>
+      </div>
+
+      <div id="center-tab-overview" class="center-tabpane active">
+        <div class="centercard wide"><small>PATIENT CONTEXT</small><p id="centerOverviewContext">Patient-level evidence across clinical domains at the active cut.</p></div>
+      </div>
+      <div id="center-tab-labs" class="center-tabpane">
+        <div class="centercard wide"><small>LABORATORY RESULTS</small><div id="centerLabsContent">Loading…</div></div>
+      </div>
+      <div id="center-tab-meds" class="center-tabpane">
+        <div class="centercard wide"><small>CONCOMITANT MEDICATIONS</small><div id="centerMedsContent">Loading…</div></div>
+      </div>
+      <div id="center-tab-disease" class="center-tabpane">
+        <div class="centercard wide"><small>MEDICAL HISTORY / DISEASES</small><div id="centerDiseaseContent">Loading…</div></div>
+      </div>
+      <div id="center-tab-ae" class="center-tabpane">
+        <div class="centercard wide"><small>ADVERSE EVENTS</small><div id="centerAeContent">Loading…</div></div>
+      </div>
+    </div>
+
+    <div id="centerLayerView" class="center-layer-view hidden">
+      <div class="layer-head">
+        <div><small id="centerLayerKicker">INTELLIGENCE LAYER</small><h3 id="centerLayerTitle">—</h3><p id="centerLayerSummary">Loading matching subjects…</p></div>
+        <span id="centerLayerCount" class="layer-count">—</span>
+      </div>
+      <div id="centerLayerSubjects" class="center-layer-subjects"></div>
     </div>
   </div>
   <div class="graph atlas-console">
