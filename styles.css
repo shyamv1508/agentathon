@@ -336,3 +336,25 @@ body{font-size:12px}
 .n1{left:52%!important;top:calc(50% - 125px)!important}
 .s1{left:52%!important;top:calc(50% - 220px)!important}
 .a2{left:52%!important;top:calc(50% - 310px)!important}
+
+
+/* fine-tune circular orbit size and place every node exactly on its orbit */
+.ring1{width:240px!important;height:240px!important}
+.ring2{width:430px!important;height:430px!important}
+.ring3{width:610px!important;height:610px!important}
+
+/* inner ring — subjects, 120px radius */
+.n1{left:52%!important;top:calc(50% - 120px)!important}
+.n2{left:calc(52% - 120px)!important;top:50%!important}
+.n3{left:calc(52% + 120px)!important;top:50%!important}
+
+/* middle ring — sites, 215px radius */
+.s1{left:52%!important;top:calc(50% - 215px)!important}
+.s2{left:calc(52% + 215px)!important;top:50%!important}
+.s3{left:52%!important;top:calc(50% + 215px)!important}
+.s4{left:calc(52% - 215px)!important;top:50%!important}
+
+/* outer ring — signals, 305px radius */
+.a1{left:calc(52% - 215.7px)!important;top:calc(50% - 215.7px)!important}
+.a2{left:calc(52% + 215.7px)!important;top:calc(50% - 215.7px)!important}
+.a3{left:calc(52% + 305px)!important;top:50%!important}
