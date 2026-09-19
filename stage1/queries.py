@@ -16,6 +16,9 @@ class QueryEngine:
         if "serious" in t and ("adverse" in t or " ae" in t):return self._serious(q)
         if ("prohibited" in t or "forbidden" in t) and ("medication" in t or "concomitant" in t or "drug" in t):return self._prohibited(q)
         if "dosing" in t or "dose" in t or "exposure" in t:return self._dosing(q)
+        if self._is_medication_lookup(t):return self._term_lookup(q, "medication")
+        if self._is_disease_lookup(t):return self._term_lookup(q, "disease")
+        if self._is_ae_lookup(t):return self._term_lookup(q, "adverse_event")
         if "patient 360" in t or "patient360" in t:return self._patient(q)
         if "protocol" in t or "lab manual" in t or "statistical analysis plan" in t or " sap " in f" {t} ":
             return self._document(q)
@@ -68,6 +71,33 @@ class QueryEngine:
     def _dosing(self,q):
         hits=dosing_findings(self.graph); ids=sorted({s for s,_,_ in hits})
         return ids,refs([r for _,_,rs in hits for r in rs]),f"Dosing findings: {', '.join(ids) if ids else 'none'}"
+
+    def _is_medication_lookup(self,t):
+        return any(x in t for x in ("medication", "medicine", "drug", "taking", "takes")) and any(x in t for x in ("which subjects", "what subjects", "who", "patients", "subjects"))
+
+    def _is_disease_lookup(self,t):
+        return any(x in t for x in ("disease", "diagnosis", "medical history", "condition", "history")) and any(x in t for x in ("which subjects", "what subjects", "who", "patients", "subjects"))
+
+    def _is_ae_lookup(self,t):
+        return ("adverse event" in t or "aet" in t) and any(x in t for x in ("which subjects", "what subjects", "who", "patients", "subjects"))
+
+    def _extract_term(self,q):
+        text=re.sub(r"^(which|what|who|show|find|list|give)\b", "", q.text.strip(), flags=re.I)
+        text=re.sub(r"\b(subjects?|patients?)\b", "", text, flags=re.I)
+        text=re.sub(r"\b(have|has|with|taking|take|using|used|use|diagnosed with|diagnosis|medication|medicine|drug|disease|condition|medical history|adverse events?)\b", "", text, flags=re.I)
+        text=re.sub(r"\b(the|a|an|for|of|all)\b", "", text, flags=re.I)
+        text=re.sub(r"\s+", " ", text).strip(" ?.,:")
+        return text
+
+    def _term_lookup(self,q,kind):
+        term=self._extract_term(q)
+        if not term:
+            return [],[],f"No {kind} term was identified."
+        domain={"medication":"CM","disease":"MH","adverse_event":"AE"}[kind]
+        field={"medication":"CMTRT","disease":"MHTERM","adverse_event":"AETERM"}[kind]
+        rows=[r for r in self.graph.rows.get(domain,[]) if term.lower() in str(r.get(field,"")).lower()]
+        ids=sorted({r.get("USUBJID") for r in rows if r.get("USUBJID")})
+        return ids,refs(rows),f"Subjects with {kind} '{term}': {', '.join(ids) if ids else 'none'}"
 
     def _patient(self,q):
         m=re.search(r"(042-[A-Z0-9]+-\d+)",q.text.upper())
