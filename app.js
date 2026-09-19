@@ -826,12 +826,14 @@ function bind() {
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.graph')?.classList.remove('centerhidden');
   });
-el('centerPatientClose')?.addEventListener('click', () => {
+const closeCenterPatient = () => {
     el('centerPatient')?.classList.add('hidden');
     el('centerLayerView')?.classList.add('hidden');
     document.querySelector('.graph')?.classList.remove('centerhidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
-  });
+  };
+  el('centerPatientBack')?.addEventListener('click', closeCenterPatient);
+  el('centerPatientClose')?.addEventListener('click', closeCenterPatient);
 
   const activateCenterTab = tab => {
     document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
