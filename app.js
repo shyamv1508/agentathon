@@ -833,23 +833,31 @@ el('centerPatientClose')?.addEventListener('click', () => {
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
   });
 
+  const activateCenterTab = tab => {
+    document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#centerPatient > .tabpane').forEach(x => x.classList.remove('active'));
+    tab.classList.add('active');
+    el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
+  };
   document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('#centerPatient > .tabpane').forEach(x => x.classList.remove('active'));
-      tab.classList.add('active');
-      el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
-    });
+    tab.addEventListener('mouseenter', () => activateCenterTab(tab));
+    tab.addEventListener('focus', () => activateCenterTab(tab));
+    tab.addEventListener('click', () => activateCenterTab(tab));
   });
 
+  const activateSideTab = tab => {
+    document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.patient > .tabpane').forEach(x => x.classList.remove('active'));
+    tab.classList.add('active');
+    el('tab-' + tab.dataset.tab)?.classList.add('active');
+  };
   document.querySelectorAll('.tabs .tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.tabpane').forEach(x => x.classList.remove('active'));
-      tab.classList.add('active');
-      el('tab-' + tab.dataset.tab)?.classList.add('active');
-    });
+    tab.addEventListener('mouseenter', () => activateSideTab(tab));
+    tab.addEventListener('focus', () => activateSideTab(tab));
+    tab.addEventListener('click', () => activateSideTab(tab));
   });
+
+
   el('cycle')?.addEventListener('click', runCycle);
   el('watchRun')?.addEventListener('click', runWatch);
   el('watchExplainClose')?.addEventListener('click', () => closeModal('watchModal'));
