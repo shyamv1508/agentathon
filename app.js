@@ -533,7 +533,12 @@ function setupNodeHoverPreview() {
 }
 
 function bind() {
-  el('centerPatientClose')?.addEventListener('click', () => {
+  el('patientBack')?.addEventListener('click', () => {
+  document.querySelector('.patient')?.classList.remove('patient-centered');
+  document.querySelector('.workspace')?.classList.remove('patient-center-mode');
+  document.querySelector('.graph')?.classList.remove('centerhidden');
+});
+el('centerPatientClose')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
     document.querySelector('.graph')?.classList.remove('centerhidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
