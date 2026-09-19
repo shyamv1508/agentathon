@@ -973,3 +973,39 @@ body{font-size:13px!important}
   .center-subject-tags{justify-content:flex-start}
 }
 
+
+
+/* Center Patient 360 deliberately mirrors the existing sidebar Patient 360 */
+.centerpatient .center-asidehead{margin:0}
+.centerpatient .center-asidehead h2{font:600 24px 'Space Grotesk';margin:4px 0}
+.centerpatient .center-back{display:inline-flex!important}
+.centerpatient .center-tabs-copy{
+  display:flex!important;
+  align-items:center;
+  gap:18px;
+  margin:4px 0 16px;
+  padding-bottom:10px;
+  border-bottom:1px solid #163038;
+}
+.centerpatient .center-tabs-copy .tab{
+  flex:0 0 auto;
+  display:inline-flex!important;
+  color:#506a6f;
+  background:none;
+  border:0;
+  padding:4px 0;
+  font:600 9px 'DM Mono';
+  cursor:pointer;
+}
+.centerpatient .center-tabs-copy .tab.active{color:var(--cyan)}
+.centerpatient > .tabpane{display:none!important}
+.centerpatient > .tabpane.active{display:block!important}
+.centerpatient .timeline{margin-top:17px}
+.centerpatient .evidencecard{margin:7px 0}
+.centerpatient .tabcontent{min-height:110px;padding-top:12px;overflow:auto}
+.centerpatient .labrow{padding:9px 2px}
+.centerpatient .center-chip-list{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:900px){
+  .centerpatient .center-tabs-copy{gap:12px;overflow-x:auto}
+  .centerpatient .center-tabs-copy .tab{font-size:8px}
+}
