@@ -251,8 +251,8 @@ function selectSubjectVisual(subject) {
 }
 
 function resetCenterTabs() {
-  document.querySelectorAll('.center-tab').forEach((tab, i) => tab.classList.toggle('active', i === 0));
-  document.querySelectorAll('.center-tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
+  document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach((tab, i) => tab.classList.toggle('active', i === 0));
+  document.querySelectorAll('#centerPatient .tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
 }
 
 function renderCenterPatientData(patient) {
@@ -832,13 +832,16 @@ el('centerPatientClose')?.addEventListener('click', () => {
     document.querySelector('.patient')?.classList.remove('patient-centered');
   });
 
-  document.querySelectorAll('.center-tabs .center-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.center-tab').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.center-tabpane').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(tab => {
+    const activateCenterTab = () => {
+      document.querySelectorAll('#centerPatient .center-tabs-copy .tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('#centerPatient .tabpane').forEach(x => x.classList.remove('active'));
       tab.classList.add('active');
       el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
-    });
+    };
+    tab.addEventListener('click', activateCenterTab);
+    tab.addEventListener('mouseenter', activateCenterTab);
+    tab.addEventListener('focus', activateCenterTab);
   });
 
   document.querySelectorAll('.tabs .tab').forEach(tab => {
