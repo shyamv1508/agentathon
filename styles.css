@@ -243,3 +243,26 @@ body{font-size:12px}
 .a2{left:35%;top:13%}
 .a3{left:69%;top:87%}
 .quarantine{left:35%;top:87%}
+
+
+/* color-matched orbital placement: cyan subjects, blue sites, red critical signals */
+.ring1{border-color:rgba(69,232,208,.62);box-shadow:0 0 18px rgba(69,232,208,.16),inset 0 0 10px rgba(69,232,208,.06)}
+.ring2{border-color:rgba(72,201,236,.52);box-shadow:0 0 20px rgba(72,201,236,.14),inset 0 0 12px rgba(72,201,236,.05)}
+.ring3{border-color:rgba(255,118,107,.42);box-shadow:0 0 22px rgba(255,118,107,.12),inset 0 0 14px rgba(255,118,107,.04)}
+
+/* inner cyan ring — subjects */
+.n1{left:52%;top:calc(50% - 102px)}
+.n2{left:calc(52% - 102px);top:50%}
+.n3{left:calc(52% + 102px);top:50%}
+
+/* middle blue ring — sites */
+.s1{left:52%;top:calc(50% - 110px)}
+.s2{left:calc(52% + 185px);top:50%}
+.s3{left:52%;top:calc(50% + 110px)}
+.s4{left:calc(52% - 185px);top:50%}
+
+/* outer red ring — critical/data signals */
+.a1{left:calc(52% - 220px);top:calc(50% - 105px)}
+.a2{left:calc(52% + 220px);top:calc(50% - 105px)}
+.a3{left:calc(52% + 278px);top:50%}
+.quarantine{left:calc(52% - 278px);top:50%}
