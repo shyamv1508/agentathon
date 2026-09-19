@@ -80,9 +80,21 @@ function renderPatientTerms(patient) {
   const diseases = [...new Set((patient?.domains?.MH || []).map(r => r.MHTERM).filter(Boolean))];
   const aes = [...new Set((patient?.domains?.AE || []).map(r => r.AETERM).filter(Boolean))];
   safeHtml('medsContent', meds.length ? '<div class="termchips">' + meds.map(x => termButton('medication',x)).join('') + '</div>' : '<span class="termempty">No medications at this cut.</span>');
-  const evidenceTerms = [...diseases.map(x => termButton('disease',x)), ...aes.map(x => termButton('adverse_event',x))];
-  safeHtml('evidenceContent', evidenceTerms.length ? '<div class="termchips">' + evidenceTerms.join('') + '</div>' : '<span class="termempty">No diseases or adverse events at this cut.</span>');
-  safeHtml('labsContent', '<div class="termempty">Labs are shown in the timeline and clinical evidence above.</div>');
+  const diseaseTerms = diseases.map(x => termButton('disease',x));
+  safeHtml('diseaseContent', diseaseTerms.length
+    ? '<div class="termchips">' + diseaseTerms.join('') + '</div>'
+    : '<span class="termempty">No diseases at this cut.</span>');
+  const labs = (patient?.domains?.LB || []).filter(r => r?.LBTEST || r?.LBORRES != null || r?.LBSTRESN != null);
+  const labRows = labs.map(r => {
+    const test = r.LBTEST || 'Lab';
+    const value = r.LBSTRESN ?? r.LBORRES ?? '—';
+    const unit = r.LBSTRESU || '';
+    const date = r.LBDTC || r.LBDY || '';
+    return '<div class="labrow"><div><b>' + escapeHtml(test) + '</b><small>' + escapeHtml(date) + '</small></div><strong>' + escapeHtml(value) + (unit ? ' ' + escapeHtml(unit) : '') + '</strong></div>';
+  });
+  safeHtml('labsContent', labRows.length
+    ? labRows.join('')
+    : '<span class="termempty">No laboratory records at this cut.</span>');
   safeHtml('patientTerms', diseases.length ? '<div class="termchips">' + diseases.map(x => termButton('disease',x)).join('') + '</div>' : '<span class="termempty">No medical history at this cut.</span>');
   document.querySelectorAll('.termchip').forEach(btn => btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue)));
 }
