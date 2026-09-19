@@ -481,3 +481,30 @@ body{font-size:12px}
     height:calc(100% - 24px)!important;
   }
 }
+
+
+/* subtle back arrow for centered Patient 360 */
+.patient-back{
+  display:none;
+  border:0!important;
+  background:transparent!important;
+  color:var(--muted)!important;
+  font-size:24px!important;
+  line-height:1!important;
+  padding:4px 8px!important;
+  cursor:pointer!important;
+  opacity:.8;
+  border-radius:8px;
+}
+.patient-back:hover{
+  color:var(--cyan)!important;
+  background:rgba(69,232,208,.06)!important;
+}
+.workspace.patient-center-mode .patient-back{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+}
+.workspace:not(.patient-center-mode) .patient-back{
+  display:none!important;
+}
