@@ -262,6 +262,7 @@ async function focusSubject(subject, question, label) {
   if (workspace && patientPanel) {
     workspace.classList.add('patient-center-mode');
     patientPanel.classList.add('patient-centered');
+    document.querySelector('.terminal')?.classList.add('agent-right');
   }
   if (center && graph) {
     graph.classList.add('centerhidden');
@@ -538,6 +539,7 @@ function bind() {
     document.querySelector('.graph')?.classList.remove('centerhidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.patient')?.classList.remove('patient-centered');
+    document.querySelector('.terminal')?.classList.remove('agent-right');
   });
 
   document.querySelectorAll('.tabs .tab').forEach(tab => {
