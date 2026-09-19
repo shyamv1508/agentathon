@@ -254,17 +254,50 @@ async function focusSubject(subject, question, label) {
   safeText('patient', subject);
   safeText('liveAnswerTitle', 'Loading ' + label + '…');
   safeText('liveAnswer', 'Fetching live evidence from StudyGraph…');
+
+  const center = el('centerPatient');
+  const graph = document.querySelector('.graph');
+  if (center && graph) {
+    graph.classList.add('centerhidden');
+    center.classList.remove('hidden');
+    safeText('centerPatientId', subject);
+    safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · CUT ' + currentCut());
+    safeText('centerStatus', 'LOADING');
+    safeText('centerAnswer', 'Fetching live evidence from StudyGraph…');
+    safeText('centerProtocol', 'Protocol ' + protocolFor(currentCut()));
+    safeText('centerContext', 'Resolving patient360 and source records…');
+    safeText('centerEvidence', 'Loading…');
+  }
+
   try {
     const data = await apiQuery(question);
+    const answerText = data.text || (data.answer || []).join(', ') || 'No findings returned.';
+    const evidence = Array.isArray(data.evidence) ? data.evidence : [];
+
     safeText('liveAnswerTitle', label);
-    safeText('liveAnswer', data.text || (data.answer || []).join(', ') || 'No findings returned.');
-    safeText('medicalContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + (data.evidence?.length || 0) + ' source records');
+    safeText('liveAnswer', answerText);
+    safeText('medicalContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + evidence.length + ' source records');
+
+    if (center) {
+      safeText('centerStatus', label || 'PATIENT 360');
+      safeText('centerAnswer', answerText);
+      safeText('centerContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + evidence.length + ' source records');
+      const evidenceHtml = evidence.length
+        ? evidence.map(e => '<div class="evidence-row"><b>' + escapeHtml(e.domain || 'RECORD') + '</b><span>' + escapeHtml([e.usubjid, e.seq != null ? 'seq ' + e.seq : '', e.document, e.section].filter(Boolean).join(' · ')) + '</span></div>').join('')
+        : 'No source records returned.';
+      center.querySelector('#centerEvidence').innerHTML = evidenceHtml;
+    }
+
     await loadPatientTerms(subject);
-    trace('<b>[focus]</b> ' + subject + ' selected');
+    trace('<b>[focus]</b> ' + subject + ' opened in center');
     return data;
   } catch (error) {
     safeText('liveAnswerTitle', 'Query error');
     safeText('liveAnswer', error.message);
+    if (center) {
+      safeText('centerStatus', 'QUERY ERROR');
+      safeText('centerAnswer', error.message);
+    }
   }
 }
 
@@ -494,6 +527,11 @@ function setupNodeHoverPreview() {
 }
 
 function bind() {
+  el('centerPatientClose')?.addEventListener('click', () => {
+    el('centerPatient')?.classList.add('hidden');
+    document.querySelector('.graph')?.classList.remove('centerhidden');
+  });
+
   document.querySelectorAll('.tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
