@@ -46,13 +46,44 @@
       <div class="centercard wide"><small>SOURCE EVIDENCE</small><div id="centerEvidence">Loading…</div></div>
     </div>
   </div>
-  <div class="graph">
-    <div class="ring ring3"></div><div class="ring ring2"></div><div class="ring ring1"></div>
-    <div class="link l1"></div><div class="link l2"></div><div class="link l3"></div><div class="link l4"></div>
-    <button class="core node">ATLAS<small>PROTOCOL</small></button>
-    <button class="site s1 node">S07</button><button class="site s2 node">S02</button><button class="site s3 node">S11</button><button class="site s4 node">S08</button>
-    <button class="subject n1 node" data-subject="042-S07-001">S07-001</button><button class="subject n2 node" data-subject="042-S02-004">S02-004</button><button class="subject n3 node" data-subject="042-S11-005">S11-005</button>
-    <button class="sat a1 node">ALT</button><button class="sat a2 node">BILI</button><button class="sat a3 node" id="aeNode" title="Reverse lookup Cellulitis">AE</button>
+  <div class="graph atlas-console">
+    <div class="graphgrid"></div>
+    <div class="console-lines" aria-hidden="true">
+      <i class="cline c1"></i><i class="cline c2"></i><i class="cline c3"></i><i class="cline c4"></i>
+      <i class="cline c5"></i><i class="cline c6"></i>
+    </div>
+    <div class="console-label">STUDY INTELLIGENCE · SELECT A LAYER</div>
+
+    <button class="core node console-core">ATLAS<small>STUDY INTELLIGENCE</small></button>
+
+    <button class="site s1 node category-node" data-category="safety">
+      <strong>SAFETY</strong><small>signals & risks</small><em>3</em>
+    </button>
+    <button class="site s2 node category-node" data-category="subjects">
+      <strong>SUBJECTS</strong><small>patient population</small><em>241</em>
+    </button>
+    <button class="site s3 node category-node" data-category="labs">
+      <strong>LABS</strong><small>clinical measurements</small><em>LB</em>
+    </button>
+    <button class="site s4 node category-node" data-category="monitoring">
+      <strong>MONITORING</strong><small>sites & oversight</small><em>12</em>
+    </button>
+
+    <button class="category-mini node" data-category="events"><strong>EVENTS</strong><small>AE</small></button>
+    <button class="category-mini node" data-category="dosing"><strong>DOSING</strong><small>EX</small></button>
+
+    <button class="subject n1 node" data-subject="042-S07-001">S07-001<small>Hy's Law</small></button>
+    <button class="subject n2 node" data-subject="042-S02-004">S02-004<small>Serious AE</small></button>
+    <button class="subject n3 node" data-subject="042-S11-005">S11-005<small>Finding</small></button>
+
+    <button class="sat a1 node" data-category="labs" title="Open laboratory signal lookup">ALT</button>
+    <button class="sat a2 node" data-category="safety" title="Open safety signal lookup">BILI</button>
+    <button class="sat a3 node" id="aeNode" data-category="events" title="Reverse lookup Cellulitis">AE</button>
+
+    <div class="console-insight" id="consoleInsight">
+      <small>ATLAS READY</small><b>Choose an intelligence layer</b>
+      <span>Click a highlighted category to reveal the relevant evidence path.</span>
+    </div>
     <div id="nodePreview" class="nodepreview" aria-live="polite"></div>
   </div>
   <div class="legend"><span><i class="cyan"></i> protocol/site</span><span><i class="amber"></i> deviation</span><span><i class="crimson"></i> critical</span><span><i class="pulse"></i> quarantined</span></div>
