@@ -255,7 +255,12 @@ async function focusSubject(subject, question, label) {
 
 async function runCycle() {
   const button = el('cycle');
-  if (button) button.disabled = true;
+  if (button) {
+    button.disabled = true;
+    button.classList.remove('done');
+    button.classList.add('running');
+    button.textContent = '● RUNNING…';
+  }
 
   safeText('termstatus', 'RUNNING');
   setPipeline(0, -1);
@@ -281,7 +286,9 @@ async function runCycle() {
       }
     }, 550);
 
-    const data = await apiFetch('/api/cycle?cut=' + currentCut());
+    const cyclePromise = apiFetch('/api/cycle?cut=' + currentCut());
+    const minimumAnimation = new Promise(resolve => setTimeout(resolve, 3300));
+    const data = await Promise.all([cyclePromise, minimumAnimation]).then(results => results[0]);
     clearInterval(stageTimer);
     window.__atlasStage = 5;
     setPipeline(-1, 5);
@@ -295,6 +302,11 @@ async function runCycle() {
     safeText('critical', escalations);
     safeText('footerStatus', findings + ' findings · ' + escalations + ' escalations · cut ' + currentCut());
     safeText('termstatus', 'COMPLETE');
+    if (button) {
+      button.classList.remove('running');
+      button.classList.add('done');
+      button.textContent = '✓ CYCLE COMPLETE';
+    }
 
     trace('<b>[execute]</b> cycle complete · ' + findings + ' findings · ' + escalations + ' escalations');
     trace('<b>[memory]</b> duplicate query/escalation protection retained');
@@ -304,7 +316,13 @@ async function runCycle() {
     safeText('termstatus', 'ERROR');
     trace('<b>[error]</b> ' + escapeHtml(error.message));
   } finally {
-    if (button) button.disabled = false;
+    if (button) {
+      button.disabled = false;
+      setTimeout(() => {
+        button.classList.remove('running','done');
+        button.textContent = '▶ RUN MONITOR CYCLE';
+      }, 2200);
+    }
     setTimeout(() => safeText('termstatus', 'IDLE'), 1200);
   }
 }
