@@ -639,3 +639,37 @@ background-size:42px 42px;mask-image:radial-gradient(circle at center,#000 15%,t
 .atlas-console .graphgrid{inset:0!important}
 .atlas-console .console-insight{bottom:24px!important}
 .atlas-console .console-label{top:20px!important}
+
+/* final center-console usability pass */
+.atlas-console .console-insight{
+  left:auto!important;
+  right:18px!important;
+  top:48px!important;
+  bottom:auto!important;
+  transform:none!important;
+  width:min(290px,34%)!important;
+  pointer-events:none!important;
+}
+.atlas-console .console-label{
+  left:18px!important;
+  top:20px!important;
+  transform:none!important;
+}
+.atlas-console .s1{left:22%!important;top:28%!important}
+.atlas-console .s2{left:78%!important;top:28%!important}
+.atlas-console .s3{left:78%!important;top:72%!important}
+.atlas-console .s4{left:22%!important;top:72%!important}
+.atlas-console .category-mini[data-category="events"]{left:36%!important;top:17%!important}
+.atlas-console .category-mini[data-category="dosing"]{left:64%!important;top:82%!important}
+.atlas-console .n1{left:36%!important;top:40%!important}
+.atlas-console .n2{left:64%!important;top:40%!important}
+.atlas-console .n3{left:50%!important;top:66%!important}
+.atlas-console .a1{left:30%!important;top:54%!important}
+.atlas-console .a2{left:70%!important;top:54%!important}
+.atlas-console .a3{left:50%!important;top:77%!important}
+.atlas-console .console-lines .c1{width:120px;left:28%;top:32%;transform:rotate(18deg)}
+.atlas-console .console-lines .c2{width:120px;left:72%;top:32%;transform:rotate(162deg)}
+.atlas-console .console-lines .c3{width:120px;left:72%;top:68%;transform:rotate(198deg)}
+.atlas-console .console-lines .c4{width:120px;left:28%;top:68%;transform:rotate(-18deg)}
+.atlas-console .console-lines .c5{width:90px;left:42%;top:24%;transform:rotate(72deg)}
+.atlas-console .console-lines .c6{width:90px;left:58%;top:76%;transform:rotate(-108deg)}
