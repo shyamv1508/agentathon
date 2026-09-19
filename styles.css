@@ -66,3 +66,17 @@ button:disabled{cursor:wait;opacity:.6}
   .patient .terminal{max-height:none}
   .patient .terminal #trace{max-height:110px}
 }
+
+/* patient dashboard tabs and long lookup results */
+.patient .tabcontent{overflow-y:auto;max-height:100%;scrollbar-width:thin}
+.labrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #163038}
+.labrow div{min-width:0}.labrow b{display:block;color:#b9cecc;font-size:8px}.labrow small{display:block;color:#5f777b;font-size:6px;margin-top:3px}.labrow strong{color:#65dfca;font-size:8px;text-align:right;white-space:nowrap}
+#lookupSubjects{max-height:220px;overflow-y:auto;padding-right:5px;scrollbar-width:thin}
+#queryEvidence{max-height:220px;overflow-y:auto;padding-right:5px;scrollbar-width:thin}
+.querybox{max-height:88vh;overflow:hidden}
+.querybox .record{max-height:180px;overflow-y:auto}
+.querybox .evidencecard{min-height:0}
+@media(max-width:1000px){
+  #lookupSubjects,#queryEvidence{max-height:180px}
+  .querybox{max-height:92vh}
+}
