@@ -373,3 +373,68 @@ body{font-size:12px}
 .a1{left:calc(52% - 264.1px)!important;top:calc(50% - 152.5px)!important}
 .a2{left:calc(52% + 264.1px)!important;top:calc(50% - 152.5px)!important}
 .a3{left:52%!important;top:calc(50% + 305px)!important}
+
+
+/* centered Patient 360 view opened from graph subject nodes */
+.centerpatient{
+  position:absolute;
+  inset:52px 18px 46px 18px;
+  z-index:20;
+  border:1px solid rgba(69,232,208,.28);
+  border-radius:18px;
+  background:rgba(7,14,22,.96);
+  box-shadow:0 0 35px rgba(0,0,0,.35),inset 0 0 30px rgba(69,232,208,.035);
+  padding:22px;
+  overflow:auto;
+}
+.centerpatient.hidden{display:none}
+.graph.centerhidden{visibility:hidden}
+.centerpatient-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  padding-bottom:18px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.centerpatient-head small,.centercard small{color:var(--muted);letter-spacing:.12em}
+.centerpatient-head h2{margin:5px 0 6px;font-size:28px}
+.centerpatient-head span{color:var(--muted);font-size:12px}
+#centerPatientClose{
+  border:1px solid rgba(69,232,208,.35);
+  background:rgba(69,232,208,.08);
+  color:var(--cyan);
+  border-radius:8px;
+  padding:9px 12px;
+  cursor:pointer;
+}
+.centerpatient-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+.centercard{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:16px;
+  background:rgba(255,255,255,.025);
+  min-height:105px;
+}
+.centercard.wide{grid-column:1/-1}
+.centercard b{display:block;margin:8px 0;color:#fff;font-size:17px}
+.centercard p{margin:0;color:var(--muted);line-height:1.6}
+.evidence-row{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.evidence-row:last-child{border-bottom:0}
+.evidence-row b{margin:0;color:var(--cyan)}
+.evidence-row span{color:var(--muted);text-align:right;font-size:12px}
+@media(max-width:900px){
+  .centerpatient-grid{grid-template-columns:1fr}
+  .centercard.wide{grid-column:auto}
+}
