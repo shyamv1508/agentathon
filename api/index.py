@@ -14,6 +14,7 @@ from starter.schemas import Question
 from stage1.atlas import Atlas
 from stage1.graph import StudyGraph
 from stage2.crew import ReviewCrew
+from stage1.rules import protocol_version
 import os
 
 DATA_DIR = ROOT / "hackathon-data"
