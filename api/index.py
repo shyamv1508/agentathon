@@ -194,7 +194,7 @@ def watch(cut_start: int = 1, cut_end: int = 12, budget_seconds: float = 180):
     try:
         watcher = get_watch()
         _WATCH_REPORT = watcher.run_period(range(cut_start, cut_end + 1), budget_seconds=budget_seconds)
-        return _WATCH_REPORT.model_dump()
+        payload = _WATCH_REPORT.model_dump()\n        payload["decision_log"] = get_watch().decisions\n        return payload
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
