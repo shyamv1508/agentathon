@@ -259,14 +259,14 @@ async function focusSubject(subject, question, label) {
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
   const workspace = document.querySelector('.workspace');
-  const patientPanel = document.querySelector('.patient');
-  if (workspace && patientPanel) {
-    workspace.classList.add('patient-center-mode');
-    patientPanel.classList.add('patient-centered');
-  }
-  if (center && graph) {
-    graph.classList.add('centerhidden');
-    center.classList.add('hidden');
+
+  // Center Patient 360 belongs to the middle console, not the right sidebar.
+  // Do not move the sidebar or hide the graph area itself.
+  if (workspace) workspace.classList.add('patient-center-mode');
+  if (graph) graph.classList.add('centerhidden');
+
+  if (center) {
+    center.classList.remove('hidden');
     safeText('centerPatientId', subject);
     safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · CUT ' + currentCut());
     safeText('centerStatus', 'LOADING');
@@ -304,10 +304,10 @@ async function focusSubject(subject, question, label) {
     if (center) {
       safeText('centerStatus', 'QUERY ERROR');
       safeText('centerAnswer', error.message);
+      safeText('centerContext', 'The center Patient 360 could not load the StudyGraph answer.');
     }
   }
 }
-
 async function runCycle() {
   const button = el('cycle');
   if (button) {
@@ -688,10 +688,10 @@ async function explainWatch(decisionId) {
 
 function bind() {
   el('patientBack')?.addEventListener('click', () => {
-  document.querySelector('.patient')?.classList.remove('patient-centered');
-  document.querySelector('.workspace')?.classList.remove('patient-center-mode');
-  document.querySelector('.graph')?.classList.remove('centerhidden');
-});
+    el('centerPatient')?.classList.add('hidden');
+    document.querySelector('.workspace')?.classList.remove('patient-center-mode');
+    document.querySelector('.graph')?.classList.remove('centerhidden');
+  });
 el('centerPatientClose')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
     document.querySelector('.graph')?.classList.remove('centerhidden');
