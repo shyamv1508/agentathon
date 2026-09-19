@@ -315,3 +315,13 @@ body{font-size:12px}
 /* separate top nodes on inner and middle orbits */
 .n1{left:52%!important;top:calc(50% - 95px)!important}
 .s1{left:52%!important;top:calc(50% - 150px)!important}
+
+
+/* enlarge 2D orbits and place each top node on its orbit */
+.ring1{width:250px!important;height:250px!important}
+.ring2{width:440px!important;height:260px!important}
+.ring3{width:620px!important;height:350px!important}
+
+.n1{left:52%!important;top:calc(50% - 125px)!important}
+.s1{left:52%!important;top:calc(50% - 130px)!important}
+.a1{left:calc(52% - 225px)!important;top:calc(50% - 127px)!important}
