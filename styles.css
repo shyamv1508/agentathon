@@ -325,3 +325,14 @@ body{font-size:12px}
 .n1{left:52%!important;top:calc(50% - 125px)!important}
 .s1{left:52%!important;top:calc(50% - 130px)!important}
 .a1{left:calc(52% - 225px)!important;top:calc(50% - 127px)!important}
+
+
+/* make every 2D orbit perfectly circular */
+.ring1{width:250px!important;height:250px!important}
+.ring2{width:440px!important;height:440px!important}
+.ring3{width:620px!important;height:620px!important}
+
+/* keep top nodes on the circular paths */
+.n1{left:52%!important;top:calc(50% - 125px)!important}
+.s1{left:52%!important;top:calc(50% - 220px)!important}
+.a2{left:52%!important;top:calc(50% - 310px)!important}
