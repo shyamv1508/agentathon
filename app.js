@@ -547,6 +547,20 @@ function renderWatchSummary(report) {
   safeText('watchAdversarial', adversarial);
   safeText('watchOpen', openItems);
   safeText('watchBudget', report?.budget?.final_tier || 'normal');
+  safeText('watchReportCuts', stats.length || 0);
+  safeText('watchReportSignals', signals);
+  safeText('watchReportDeviations', deviations);
+  safeText('watchReportOpen', openItems);
+  safeText('watchReportBudget', report?.budget?.final_tier || 'normal');
+  safeText('watchReportSummary',
+    'WATCH reviewed ' + (stats.length || 0) + ' weekly cuts and found ' + signals + ' signals and ' + deviations + ' deviations. ' + openItems + ' items remain visible for follow-up.');
+  safeText('watchReportSafety',
+    'Safety checks continue even when narrative or model work is reduced by the budget guard.');
+  safeText('watchReportIntegrity', adversarial
+    ? adversarial + ' adversarial event' + (adversarial === 1 ? '' : 's') + ' detected and logged.'
+    : 'No adversarial event was triggered by the public dataset; hidden challenge mutations are evaluated separately.');
+  safeText('watchReportHuman',
+    openItems ? openItems + ' open item' + (openItems === 1 ? '' : 's') + ' remain visible rather than being silently approved.' : 'No open items remain.');
   safeHtml('watchCuts', stats.length ? stats.map(x => {
     const s=x.stats||{};
     return '<div class="watchcut"><b>CUT '+escapeHtml(x.cut)+'</b><span>P'+escapeHtml(x.protocol_version)+'</span><em>'+escapeHtml(s.escalations ?? 0)+' escalations</em></div>';
@@ -570,10 +584,11 @@ async function runWatch() {
   try {
     watchReport=await apiFetch('/api/watch?cut_start=1&cut_end=12&budget_seconds=180');
     renderWatchSummary(watchReport);
+    openModal('watchModal');
     const decisions=watchReport?.open_items||[];
     safeText('watchStatus','COMPLETE');
     safeText('watchMessage',
-      'WATCH completed all '+(watchReport?.cuts?.length||0)+' cuts. Decisions remain trace-backed and safety-first.');
+      'WATCH completed all '+(watchReport?.cuts?.length||0)+' cuts. The surveillance report is ready for review.');
     trace('<b>[watch]</b> 12-cut surveillance complete · '+(watchReport?.adversarial_events?.length||0)+' adversarial events · '+(watchReport?.deviations?.length||0)+' deviations');
     if(button){button.textContent='✓ WATCH COMPLETE';button.classList.add('done');}
   } catch(error) {
