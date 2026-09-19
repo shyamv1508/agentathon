@@ -402,6 +402,44 @@ async function handleFocus(button) {
   await focusSubject(button.dataset.subject, button.dataset.query, button.querySelector('span')?.textContent || 'Subject finding');
 }
 
+
+function setupNodeHoverPreview() {
+  const graph = document.querySelector('.graph');
+  const preview = document.querySelector('#nodePreview');
+  if (!graph || !preview) return;
+  const info = node => {
+    if (node.classList.contains('core')) return ['ATLAS PROTOCOL','Study intelligence core','Click to query the active protocol version.'];
+    if (node.classList.contains('site')) {
+      const id = node.textContent.trim();
+      return ['SITE ' + id,'Site intelligence node','Hover to inspect · click for site findings.'];
+    }
+    if (node.classList.contains('subject')) {
+      const id = node.dataset.subject || node.textContent.trim();
+      return [id,'Patient 360 subject','Click to load live evidence, labs, medications and disease history.'];
+    }
+    if (node.classList.contains('sat')) {
+      const id = node.textContent.trim();
+      return [id + ' SIGNAL','Clinical evidence signal','Click to run the related StudyGraph finding lookup.'];
+    }
+    return null;
+  };
+  graph.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('mouseenter', () => {
+      const data = info(node); if (!data) return;
+      preview.innerHTML = '<b>' + escapeHtml(data[0]) + '</b><small><strong>' + escapeHtml(data[1]) + '</strong><br>' + escapeHtml(data[2]) + '</small>';
+      const nr = node.getBoundingClientRect(), gr = graph.getBoundingClientRect();
+      const w = 220, h = 78;
+      let left = nr.right - gr.left + 10, top = nr.top - gr.top - 8;
+      if (left + w > gr.width - 10) left = nr.left - gr.left - w - 10;
+      if (top + h > gr.height - 10) top = gr.height - h - 10;
+      if (top < 10) top = 10;
+      preview.style.left = left + 'px'; preview.style.top = top + 'px';
+      preview.classList.add('show');
+    });
+    node.addEventListener('mouseleave', () => preview.classList.remove('show'));
+  });
+}
+
 function bind() {
   document.querySelectorAll('.tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -549,6 +587,7 @@ function bind() {
 
 async function start() {
   bind();
+  setupNodeHoverPreview();
   setPipeline(0, -1);
   try {
     await loadCut(currentCut());
