@@ -559,11 +559,7 @@ function renderWatchSummary(report) {
 }
 
 function getWatchDecisions(report) {
-  const out = {};
-  (report?.open_items || []).forEach((x,i) => {
-    if (x?.decision_id) out[x.decision_id]=x;
-  });
-  return out;
+  return report?.decision_log || {};
 }
 
 async function runWatch() {
