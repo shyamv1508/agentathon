@@ -250,6 +250,163 @@ function selectSubjectVisual(subject) {
   });
 }
 
+function resetCenterTabs() {
+  document.querySelectorAll('.center-tab').forEach((tab, i) => tab.classList.toggle('active', i === 0));
+  document.querySelectorAll('.center-tabpane').forEach((pane, i) => pane.classList.toggle('active', i === 0));
+}
+
+function renderCenterPatientData(patient) {
+  const domains = patient?.domains || {};
+  const meds = [...new Set((domains.CM || []).map(r => r?.CMTRT).filter(Boolean))];
+  const diseases = [...new Set((domains.MH || []).map(r => r?.MHTERM).filter(Boolean))];
+  const aes = (domains.AE || []).filter(r => r?.AETERM).map(r => {
+    const serious = String(r.AESER || '').toUpperCase() === 'Y' || String(r.AESHOSP || '').toUpperCase() === 'Y';
+    return '<div class="center-list-row"><div><b>' + escapeHtml(r.AETERM) + '</b><small>' +
+      escapeHtml([r.AESTDTC, r.AEENDTC].filter(Boolean).join(' → ') || 'Date not recorded') +
+      '</small></div><strong>' + (serious ? 'SERIOUS' : 'NON-SERIOUS') + '</strong></div>';
+  });
+  const labs = (domains.LB || []).filter(r => r?.LBTEST || r?.LBORRES != null || r?.LBSTRESN != null).map(r => {
+    const test = r.LBTEST || r.LBTESTCD || 'Lab';
+    const value = r.LBSTRESN ?? r.LBORRES ?? '—';
+    const unit = r.LBSTRESU || '';
+    const date = r.LBDTC || r.LBDY || '';
+    return '<div class="center-list-row"><div><b>' + escapeHtml(test) + '</b><small>' +
+      escapeHtml(date) + '</small></div><strong>' + escapeHtml(String(value)) +
+      (unit ? ' ' + escapeHtml(unit) : '') + '</strong></div>';
+  });
+
+  safeHtml('centerLabsContent', labs.length ? labs.join('') : '<span class="termempty">No laboratory records at this cut.</span>');
+  safeHtml('centerMedsContent', meds.length
+    ? '<div class="center-chip-list">' + meds.map(x => termButton('medication', x)).join('') + '</div>'
+    : '<span class="termempty">No medications at this cut.</span>');
+  safeHtml('centerDiseaseContent', diseases.length
+    ? '<div class="center-chip-list">' + diseases.map(x => termButton('disease', x)).join('') + '</div>'
+    : '<span class="termempty">No medical history / diseases at this cut.</span>');
+  safeHtml('centerAeContent', aes.length ? aes.join('') : '<span class="termempty">No adverse events at this cut.</span>');
+  safeText('centerOverviewContext',
+    'Subject has ' + (labs.length) + ' lab records, ' + meds.length + ' medication terms, ' +
+    diseases.length + ' medical-history terms, and ' + aes.length + ' adverse-event records at cut ' + currentCut() + '.');
+
+  document.querySelectorAll('#centerPatient .termchip').forEach(btn => {
+    btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue));
+  });
+}
+
+function subjectIdsFromResult(result) {
+  const ids = Array.isArray(result?.answer) ? result.answer : [];
+  const evidenceIds = Array.isArray(result?.evidence)
+    ? result.evidence.map(e => e?.usubjid).filter(Boolean)
+    : [];
+  return [...new Set([...ids, ...evidenceIds].map(String).filter(x => /^042-S\d{2}-\d{3}$/.test(x)))];
+}
+
+async function openCenterLayer(category) {
+  const workspace = document.querySelector('.workspace');
+  const center = el('centerPatient');
+  const graph = document.querySelector('.graph');
+  const patientView = el('centerPatientView');
+  const layerView = el('centerLayerView');
+
+  if (!workspace || !center || !graph || !patientView || !layerView) return;
+
+  workspace.classList.add('patient-center-mode');
+  graph.classList.add('centerhidden');
+  center.classList.remove('hidden');
+  patientView.classList.add('hidden');
+  layerView.classList.remove('hidden');
+
+  const definitions = {
+    safety: {
+      title: 'Safety Intelligence',
+      summary: 'Subjects with protocol-defined safety signals across Hy’s Law, serious adverse events, and prohibited medications.',
+      kicker: 'SAFETY · ALL MATCHING SUBJECTS',
+      queries: [
+        ['HY’S LAW', 'Which subjects have Hy’s Law findings?'],
+        ['SERIOUS AE', 'Which subjects have serious adverse events?'],
+        ['PROHIBITED MEDICATION', 'Which subjects have prohibited concomitant medication?']
+      ]
+    },
+    subjects: {
+      title: 'Subject Population',
+      summary: 'The active study population indexed in StudyGraph at the selected cut.',
+      kicker: 'SUBJECTS · STUDY POPULATION',
+      queries: [['ALL SUBJECTS', 'How many subjects are in the study?']]
+    },
+    labs: {
+      title: 'Laboratory Intelligence',
+      summary: 'Subjects surfaced by protocol-relevant laboratory safety rules.',
+      kicker: 'LABS · SAFETY SIGNALS',
+      queries: [['HY’S LAW', 'Which subjects have Hy’s Law findings?']]
+    },
+    monitoring: {
+      title: 'Monitoring Intelligence',
+      summary: 'Oversight decisions are reviewed through the Human Gate.',
+      kicker: 'MONITORING · HUMAN OVERSIGHT',
+      queries: []
+    }
+  };
+
+  const item = definitions[category];
+  if (!item) return;
+
+  safeText('centerLayerKicker', item.kicker);
+  safeText('centerLayerTitle', item.title);
+  safeText('centerLayerSummary', item.summary);
+  safeText('centerLayerCount', 'LOADING');
+  safeHtml('centerLayerSubjects', '<div class="layer-loading">Reading StudyGraph evidence…</div>');
+
+  if (category === 'monitoring') {
+    safeText('centerLayerCount', 'GATE');
+    safeHtml('centerLayerSubjects',
+      '<div class="layer-empty"><b>Human Gate</b><span>Open the Human Gate to review pending monitoring decisions for the active cut.</span></div>');
+    trace('<b>[center]</b> Monitoring intelligence selected');
+    return;
+  }
+
+  try {
+    const results = await Promise.all(item.queries.map(async ([reason, question]) => ({
+      reason,
+      result: await apiQuery(question)
+    })));
+
+    const subjects = new Map();
+    for (const entry of results) {
+      for (const id of subjectIdsFromResult(entry.result)) {
+        if (!subjects.has(id)) subjects.set(id, new Set());
+        subjects.get(id).add(entry.reason);
+      }
+    }
+
+    safeText('centerLayerCount', subjects.size + ' SUBJECT' + (subjects.size === 1 ? '' : 'S'));
+
+    if (!subjects.size) {
+      safeHtml('centerLayerSubjects', '<div class="layer-empty"><b>No matching subjects</b><span>No qualifying records were returned at the selected cut.</span></div>');
+      return;
+    }
+
+    const rows = [...subjects.entries()].sort((a,b) => a[0].localeCompare(b[0])).map(([id,reasons]) => {
+      const tags = [...reasons].map(x => '<span>' + escapeHtml(x) + '</span>').join('');
+      return '<button type="button" class="center-subject-row" data-subject="' + escapeHtml(id) + '">' +
+        '<div><strong>' + escapeHtml(id) + '</strong><small>Open Patient 360</small></div>' +
+        '<div class="center-subject-tags">' + tags + '</div></button>';
+    }).join('');
+
+    safeHtml('centerLayerSubjects', rows);
+    document.querySelectorAll('.center-subject-row').forEach(btn => {
+      btn.addEventListener('click', () => focusSubject(
+        btn.dataset.subject,
+        'What is the patient360 for ' + btn.dataset.subject + '?',
+        btn.dataset.subject
+      ));
+    });
+    trace('<b>[center]</b> ' + item.title + ' · ' + subjects.size + ' matching subjects');
+  } catch (error) {
+    safeText('centerLayerCount', 'ERROR');
+    safeHtml('centerLayerSubjects', '<div class="layer-empty"><b>Layer query failed</b><span>' + escapeHtml(error.message) + '</span></div>');
+    trace('<b>[error]</b> ' + escapeHtml(error.message));
+  }
+}
+
 async function focusSubject(subject, question, label) {
   selectSubjectVisual(subject);
   safeText('patient', subject);
@@ -259,14 +416,18 @@ async function focusSubject(subject, question, label) {
   const center = el('centerPatient');
   const graph = document.querySelector('.graph');
   const workspace = document.querySelector('.workspace');
+  const patientView = el('centerPatientView');
+  const layerView = el('centerLayerView');
 
-  // Center Patient 360 belongs to the middle console, not the right sidebar.
-  // Do not move the sidebar or hide the graph area itself.
   if (workspace) workspace.classList.add('patient-center-mode');
   if (graph) graph.classList.add('centerhidden');
+  if (center) center.classList.remove('hidden');
+  if (patientView) patientView.classList.remove('hidden');
+  if (layerView) layerView.classList.add('hidden');
+  resetCenterTabs();
 
   if (center) {
-    center.classList.remove('hidden');
+    safeText('centerPatientKicker', 'PATIENT 360 · CENTER FOCUS');
     safeText('centerPatientId', subject);
     safeText('centerPatientMeta', 'SITE ' + (subject.split('-')[1] || '—') + ' · CUT ' + currentCut());
     safeText('centerStatus', 'LOADING');
@@ -274,10 +435,18 @@ async function focusSubject(subject, question, label) {
     safeText('centerProtocol', 'Protocol ' + protocolFor(currentCut()));
     safeText('centerContext', 'Resolving patient360 and source records…');
     safeText('centerEvidence', 'Loading…');
+    safeText('centerOverviewContext', 'Loading patient domains…');
+    safeHtml('centerLabsContent', '<span class="termempty">Loading…</span>');
+    safeHtml('centerMedsContent', '<span class="termempty">Loading…</span>');
+    safeHtml('centerDiseaseContent', '<span class="termempty">Loading…</span>');
+    safeHtml('centerAeContent', '<span class="termempty">Loading…</span>');
   }
 
   try {
-    const data = await apiQuery(question);
+    const [data, patient] = await Promise.all([
+      apiQuery(question),
+      apiPatient(subject)
+    ]);
     const answerText = data.text || (data.answer || []).join(', ') || 'No findings returned.';
     const evidence = Array.isArray(data.evidence) ? data.evidence : [];
 
@@ -293,6 +462,7 @@ async function focusSubject(subject, question, label) {
         ? evidence.map(e => '<div class="evidence-row"><b>' + escapeHtml(e.domain || 'RECORD') + '</b><span>' + escapeHtml([e.usubjid, e.seq != null ? 'seq ' + e.seq : '', e.document, e.section].filter(Boolean).join(' · ')) + '</span></div>').join('')
         : 'No source records returned.';
       center.querySelector('#centerEvidence').innerHTML = evidenceHtml;
+      renderCenterPatientData(patient);
     }
 
     await loadPatientTerms(subject);
@@ -445,67 +615,21 @@ async function handleFocus(button) {
 
 function activateCategory(category) {
   const map = {
-    safety: {
-      title: 'Safety intelligence',
-      text: 'Which subjects have Hy’s Law findings?',
-      insight: ['SAFETY', 'Clinical risk layer', 'Hy’s Law · serious AE · prohibited medication', 'Select a highlighted subject to inspect source evidence.']
-    },
-    subjects: {
-      title: 'Subject intelligence',
-      text: 'What is the patient360 for 042-S07-001?',
-      insight: ['SUBJECTS', 'Patient population', '241 subjects indexed across the active cut', 'Select a subject node to open Patient 360.']
-    },
-    labs: {
-      title: 'Laboratory intelligence',
-      text: 'Which subjects have Hy’s Law findings?',
-      insight: ['LABS', 'Clinical measurements', 'ALT · AST · bilirubin · reference ranges', 'Select the ALT or BILI signal to inspect evidence.']
-    },
-    monitoring: {
-      title: 'Monitoring intelligence',
-      text: '',
-      insight: ['MONITORING', 'Sites & oversight', 'Site health · escalations · human gate', 'Open Human Gate for the current cut.']
-    },
-    events: {
-      title: 'Event intelligence',
-      text: 'Which subjects have serious adverse events?',
-      insight: ['EVENTS', 'Adverse events', 'Seriousness · hospitalization · subject evidence', 'Select the AE signal to inspect matching subjects.']
-    },
-    dosing: {
-      title: 'Dosing intelligence',
-      text: 'Which subjects have dosing findings?',
-      insight: ['DOSING', 'Exposure & protocol', 'Expected dose · route · frequency · deviations', 'Select a subject branch to inspect dosing evidence.']
-    }
+    safety: ['Safety intelligence', 'Safety'],
+    subjects: ['Subject intelligence', 'Subjects'],
+    labs: ['Laboratory intelligence', 'Labs'],
+    monitoring: ['Monitoring intelligence', 'Monitoring']
   };
   const item = map[category];
   if (!item) return;
+
   document.querySelectorAll('.category-node, .category-mini').forEach(n => n.classList.toggle('selected', n.dataset.category === category));
-  document.querySelectorAll('.subject').forEach(n => n.classList.remove('branch-focus'));
-  const subjectMap = {
-    safety: ['042-S07-001','042-S02-004'],
-    subjects: ['042-S07-001','042-S02-004','042-S11-005'],
-    labs: ['042-S07-001'],
-    monitoring: ['042-S02-004','042-S11-005'],
-    events: ['042-S02-004'],
-    dosing: ['042-S07-001','042-S11-005']
-  };
-  (subjectMap[category] || []).forEach(id => {
-    document.querySelector('.subject[data-subject="' + id + '"]')?.classList.add('branch-focus');
-  });
   safeHtml('consoleInsight',
-    '<small>' + escapeHtml(item.insight[0]) + '</small>' +
-    '<b>' + escapeHtml(item.insight[1]) + '</b>' +
-    '<span>' + escapeHtml(item.insight[2]) + '</span>' +
-    '<em>' + escapeHtml(item.insight[3]) + '</em>');
-  trace('<b>[center]</b> ' + escapeHtml(item.title) + ' selected');
-  if (category === 'monitoring') {
-    loadHumanGate();
-  } else if (category === 'subjects') {
-    focusSubject('042-S07-001', 'What is the patient360 for 042-S07-001?', '042-S07-001');
-  } else if (category === 'labs') {
-    showQuery(item.title, item.text, {});
-  } else if (category === 'safety' || category === 'events' || category === 'dosing') {
-    showQuery(item.title, item.text, {});
-  }
+    '<small>' + escapeHtml(item[1].toUpperCase()) + '</small>' +
+    '<b>' + escapeHtml(item[0]) + '</b>' +
+    '<span>Opening the evidence view for this intelligence layer.</span>');
+  trace('<b>[center]</b> ' + escapeHtml(item[0]) + ' selected');
+  openCenterLayer(category);
 }
 
 function setupNodeHoverPreview() {
@@ -689,6 +813,8 @@ async function explainWatch(decisionId) {
 function bind() {
   el('patientBack')?.addEventListener('click', () => {
     el('centerPatient')?.classList.add('hidden');
+    el('centerPatientView')?.classList.remove('hidden');
+    el('centerLayerView')?.classList.add('hidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.graph')?.classList.remove('centerhidden');
   });
@@ -697,6 +823,15 @@ el('centerPatientClose')?.addEventListener('click', () => {
     document.querySelector('.graph')?.classList.remove('centerhidden');
     document.querySelector('.workspace')?.classList.remove('patient-center-mode');
     document.querySelector('.patient')?.classList.remove('patient-centered');
+  });
+
+  document.querySelectorAll('.center-tabs .center-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.center-tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.center-tabpane').forEach(x => x.classList.remove('active'));
+      tab.classList.add('active');
+      el('center-tab-' + tab.dataset.centerTab)?.classList.add('active');
+    });
   });
 
   document.querySelectorAll('.tabs .tab').forEach(tab => {
