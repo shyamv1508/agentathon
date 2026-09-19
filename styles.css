@@ -229,3 +229,17 @@ body{font-size:12px}
   from{transform:translate(-50%,-50%) rotateX(67deg) rotateY(-32deg) rotateZ(0deg)}
   to{transform:translate(-50%,-50%) rotateX(67deg) rotateY(-32deg) rotateZ(360deg)}
 }
+
+
+/* perimeter node layout: keep ATLAS central and distribute all nodes around the outer orbital */
+.s1{left:52%;top:11%}
+.s2{left:79%;top:20%}
+.s3{left:87%;top:50%}
+.s4{left:79%;top:80%}
+.n1{left:52%;top:89%}
+.n2{left:25%;top:80%}
+.n3{left:17%;top:50%}
+.a1{left:25%;top:20%}
+.a2{left:35%;top:13%}
+.a3{left:69%;top:87%}
+.quarantine{left:35%;top:87%}
