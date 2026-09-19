@@ -10,3 +10,16 @@
 .terminal{z-index:25;pointer-events:auto}
 .modal{z-index:100}
 .modal button{pointer-events:auto;cursor:pointer}
+
+
+/* live interaction states */
+.focus,.node,.gate,.reverse,#cycle,#report,.iconbtn{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease,opacity .18s ease}
+.focus:hover,.node:hover,.gate:hover,.reverse:hover,#cycle:hover,#report:hover,.iconbtn:hover{filter:brightness(1.18);transform:translateY(-1px)}
+.focus.activefocus{box-shadow:0 0 0 1px rgba(0,229,255,.8),0 0 22px rgba(0,229,255,.18);transform:translateX(3px)}
+.subject.selected{box-shadow:0 0 0 2px rgba(0,229,255,.9),0 0 28px rgba(0,229,255,.35);z-index:40}
+.pnode.active{box-shadow:0 0 22px rgba(0,229,255,.22);transform:translateY(-2px)}
+.pnode.complete{opacity:.9}
+.pnode.complete em{color:#5ff0bd}
+#trace p{animation:traceIn .2s ease both}
+@keyframes traceIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+button:disabled{cursor:wait;opacity:.6}
