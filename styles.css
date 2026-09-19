@@ -35,3 +35,13 @@ button:disabled{cursor:wait;opacity:.6}
 .lookupsubjects{display:flex;flex-wrap:wrap;gap:6px}
 .subjectlookup{border-radius:5px}
 #patientTerms{margin-top:6px}
+
+/* 3D graph node hover: scale in place, no vertical movement */
+.grapharea .node:hover,
+.grapharea .subject:hover,
+.grapharea .site:hover,
+.grapharea .core:hover,
+.grapharea .sat:hover{
+  transform:scale(1.12)!important;
+  transform-origin:center center;
+}
