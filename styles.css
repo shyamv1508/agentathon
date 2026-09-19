@@ -1009,3 +1009,27 @@ body{font-size:13px!important}
   .centerpatient .center-tabs-copy{gap:12px;overflow-x:auto}
   .centerpatient .center-tabs-copy .tab{font-size:8px}
 }
+
+
+/* Center Patient 360 must receive pointer input above the non-interactive graph layer */
+.workspace.patient-center-mode .centerpatient{
+  display:block!important;
+  pointer-events:auto!important;
+  z-index:120!important;
+}
+.workspace.patient-center-mode .centerpatient *{
+  pointer-events:auto;
+}
+.workspace.patient-center-mode .centerpatient .hidden{
+  display:none!important;
+}
+/* Hover behaves like browser tab switching; active state stays visible. */
+.centerpatient .center-tabs-copy .tab,
+.patient .tabs .tab{
+  transition:color .15s ease,border-color .15s ease,background .15s ease;
+}
+.centerpatient .center-tabs-copy .tab:hover,
+.patient .tabs .tab:hover{
+  color:var(--cyan)!important;
+  background:rgba(69,232,208,.035);
+}
