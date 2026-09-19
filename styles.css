@@ -283,3 +283,15 @@ body{font-size:12px}
   box-shadow:0 0 16px rgba(255,118,107,.22);
 }
 .quarantine::after{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 9px var(--red)}
+
+
+/* restore flat 2D orbital rings */
+.graph{perspective:none!important;transform-style:flat!important}
+.ring,.ring1,.ring2,.ring3{
+  transform:translate(-50%,-50%)!important;
+  transform-style:flat!important;
+  border-radius:50%!important;
+}
+.ring1{width:205px!important;height:205px!important}
+.ring2{width:370px!important;height:220px!important}
+.ring3{width:555px!important;height:315px!important}
