@@ -443,6 +443,63 @@ async function handleFocus(button) {
 }
 
 
+function activateCategory(category) {
+  const map = {
+    safety: {
+      title: 'Safety intelligence',
+      text: 'Which subjects have Hy’s Law findings?',
+      insight: ['SAFETY', 'Clinical risk layer', 'Hy’s Law · serious AE · prohibited medication', 'Click a subject branch to open Patient 360.']
+    },
+    subjects: {
+      title: 'Subject intelligence',
+      text: 'What findings are present for 042-S07-001?',
+      insight: ['SUBJECTS', 'Patient population', '241 subjects indexed across the active cut', 'Click any subject branch for Patient 360.']
+    },
+    labs: {
+      title: 'Laboratory intelligence',
+      text: 'Which subjects have Hy’s Law findings?',
+      insight: ['LABS', 'Clinical measurements', 'ALT · AST · bilirubin · reference ranges', 'Signals stay connected to source records.']
+    },
+    monitoring: {
+      title: 'Monitoring intelligence',
+      text: 'Which subjects have serious adverse events?',
+      insight: ['MONITORING', 'Sites & oversight', 'Site health · escalations · human gate', 'Use the right panel for detailed review.']
+    },
+    events: {
+      title: 'Event intelligence',
+      text: 'Which subjects have serious adverse events?',
+      insight: ['EVENTS', 'Adverse events', 'Seriousness · hospitalization · subject evidence', 'Reverse lookup returns matching subjects.']
+    },
+    dosing: {
+      title: 'Dosing intelligence',
+      text: 'Which subjects have dosing findings?',
+      insight: ['DOSING', 'Exposure & protocol', 'Expected dose · route · frequency · deviations', 'Evidence is resolved at the selected cut.']
+    }
+  };
+  const item = map[category];
+  if (!item) return;
+  document.querySelectorAll('.category-node, .category-mini').forEach(n => n.classList.toggle('selected', n.dataset.category === category));
+  document.querySelectorAll('.subject').forEach(n => n.classList.remove('branch-focus'));
+  const subjectMap = {
+    safety: ['042-S07-001','042-S02-004'],
+    subjects: ['042-S07-001','042-S02-004','042-S11-005'],
+    labs: ['042-S07-001'],
+    monitoring: ['042-S02-004','042-S11-005'],
+    events: ['042-S02-004'],
+    dosing: ['042-S07-001','042-S11-005']
+  };
+  (subjectMap[category] || []).forEach(id => {
+    document.querySelector('.subject[data-subject="' + id + '"]')?.classList.add('branch-focus');
+  });
+  safeHtml('consoleInsight',
+    '<small>' + escapeHtml(item.insight[0]) + '</small>' +
+    '<b>' + escapeHtml(item.insight[1]) + '</b>' +
+    '<span>' + escapeHtml(item.insight[2]) + '</span>' +
+    '<em>' + escapeHtml(item.insight[3]) + '</em>');
+  trace('<b>[center]</b> ' + escapeHtml(item.title) + ' selected');
+  showQuery(item.title, item.text, {});
+}
+
 function setupNodeHoverPreview() {
   const graph = document.querySelector('.graph');
   const preview = document.querySelector('#nodePreview');
@@ -459,20 +516,18 @@ function setupNodeHoverPreview() {
       'Click action: opens Protocol Intelligence and answers which protocol version is active at the selected cut.'
     ];
 
-    if (node.classList.contains('site')) {
-      const id = node.textContent.trim();
-      const questions = {
-        S07: 'Which subjects have Hy’s Law findings?',
-        S02: 'Which subjects have serious adverse events?',
-        S11: 'What findings are present for 042-S11-005?',
-        S08: 'Which subjects have prohibited concomitant medications?'
+    if (node.classList.contains('category-node') || node.classList.contains('category-mini')) {
+      const label = node.dataset.category || node.textContent.trim();
+      const names = {
+        safety: ['SAFETY', 'Clinical risk layer', 'Hy’s Law · serious AE · prohibited medication'],
+        subjects: ['SUBJECTS', 'Patient population', 'Patient 360 and subject findings'],
+        labs: ['LABS', 'Clinical measurements', 'ALT · AST · bilirubin · reference ranges'],
+        monitoring: ['MONITORING', 'Sites & oversight', 'Site health · escalations · human gate'],
+        events: ['EVENTS', 'Adverse events', 'Seriousness · hospitalization · findings'],
+        dosing: ['DOSING', 'Exposure & protocol', 'Expected dose · route · frequency']
       };
-      return [
-        'SITE ' + id,
-        'Site intelligence',
-        'Click action: opens site intelligence.',
-        'Query: ' + (questions[id] || 'What findings are present?')
-      ];
+      const d = names[label] || [label.toUpperCase(), 'Study intelligence', 'Evidence-grounded analysis'];
+      return [d[0], d[1], 'Click action: open this intelligence layer.', d[2]];
     }
 
     if (node.classList.contains('subject')) {
@@ -745,17 +800,10 @@ el('centerPatientClose')?.addEventListener('click', () => {
     );
   });
 
-  document.querySelectorAll('.site').forEach(site => {
-    site.addEventListener('click', (event) => {
+  document.querySelectorAll('.category-node, .category-mini').forEach(node => {
+    node.addEventListener('click', (event) => {
       event.stopPropagation();
-      const siteId = site.textContent.trim();
-      const questions = {
-        S07: 'Which subjects have Hy’s Law findings?',
-        S02: 'Which subjects have serious adverse events?',
-        S11: 'What findings are present for 042-S11-005?',
-        S08: 'Which subjects have prohibited concomitant medications?'
-      };
-      showQuery('Site ' + siteId + ' intelligence', questions[siteId] || 'What findings are present?', {});
+      activateCategory(node.dataset.category);
     });
   });
 
