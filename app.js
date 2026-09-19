@@ -63,6 +63,83 @@ function currentCut() {
   return +(cutEl?.value || 12);
 }
 
+async function apiPatient(subject) {
+  return apiFetch('/api/patient/' + encodeURIComponent(subject) + '?cut=' + currentCut());
+}
+
+async function apiLookup(type, value) {
+  return apiFetch('/api/lookup?type=' + encodeURIComponent(type) + '&value=' + encodeURIComponent(value) + '&cut=' + currentCut());
+}
+
+function termButton(type, value) {
+  return '<button class="termchip" data-term-type="' + escapeHtml(type) + '" data-term-value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</button>';
+}
+
+function renderPatientTerms(patient) {
+  const meds = (patient?.domains?.CM || []).map(r => r.CMTRT).filter(Boolean);
+  const diseases = (patient?.domains?.MH || []).map(r => r.MHTERM).filter(Boolean);
+  const aes = (patient?.domains?.AE || []).map(r => r.AETERM).filter(Boolean);
+  const unique = (items) => [...new Set(items)];
+  const parts = [];
+  unique(meds).forEach(x => parts.push(termButton('medication', x)));
+  unique(diseases).forEach(x => parts.push(termButton('disease', x)));
+  unique(aes).forEach(x => parts.push(termButton('adverse_event', x)));
+  safeHtml('patientTerms', parts.length ? parts.join('') : '<span class="termempty">No related terms at this cut.</span>');
+  document.querySelectorAll('.termchip').forEach(btn => {
+    btn.addEventListener('click', () => reverseLookup(btn.dataset.termType, btn.dataset.termValue));
+  });
+}
+
+async function loadPatientTerms(subject) {
+  try {
+    const patient = await apiPatient(subject);
+    renderPatientTerms(patient);
+  } catch {
+    safeHtml('patientTerms', '<span class="termempty">Unable to load patient terms.</span>');
+  }
+}
+
+async function reverseLookup(type, value) {
+  const title = (type === 'medication' ? 'Medication' : type === 'disease' ? 'Disease' : 'Adverse event') + ' · ' + value;
+  openModal('queryModal');
+  safeText('queryTitle', title);
+  safeText('queryAnswer', 'Finding all matching subjects…');
+  safeHtml('queryEvidence', '<div class="queryev">Loading source records…</div>');
+  safeHtml('lookupSubjects', '<div class="queryev">Searching StudyGraph…</div>');
+  try {
+    const data = await apiLookup(type, value);
+    safeText('queryAnswer', data.count + ' subject' + (data.count === 1 ? '' : 's') + ' match ' + value + '.');
+    safeHtml('lookupSubjects', data.subjects.length
+      ? data.subjects.map(s => '<button class="subjectlookup" data-subject="' + escapeHtml(s) + '">' + escapeHtml(s) + '</button>').join('')
+      : '<span class="termempty">No matching subjects.</span>');
+    safeHtml('queryEvidence', renderEvidence(data.evidence));
+    document.querySelectorAll('.subjectlookup').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        closeModal('queryModal');
+        await focusSubject(btn.dataset.subject, 'What is the patient360 for ' + btn.dataset.subject + '?', btn.dataset.subject);
+      });
+    });
+    trace('<b>[reverse_lookup]</b> ' + escapeHtml(type) + ' · ' + escapeHtml(value) + ' → ' + data.count + ' subjects');
+  } catch (error) {
+    safeText('queryAnswer', error.message);
+    safeHtml('lookupSubjects', '<span class="termempty">Lookup failed.</span>');
+    safeHtml('queryEvidence', '<div class="queryev">Query failed.</div>');
+  }
+}
+
+async function askAtlas() {
+  const input = el('questionInput');
+  const question = input?.value.trim();
+  if (!question) return;
+  const button = el('askQuestion');
+  if (button) button.disabled = true;
+  try {
+    await showQuery('ATLAS · ' + question, question);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 async function loadCut(value) {
   const cut = +value;
   const stats = await apiFetch('/api/stats?cut=' + cut);
@@ -113,10 +190,21 @@ async function showQuery(title, question, options = {}) {
   safeText('queryTitle', title);
   safeText('queryAnswer', 'Querying StudyGraph…');
   safeHtml('queryEvidence', '<div class="queryev">Loading source records…</div>');
+  safeHtml('lookupSubjects', '<div class="queryev">Reading answer…</div>');
 
   try {
     const data = await apiQuery(question);
     safeText('queryAnswer', data.text || (data.answer || []).join(', ') || 'No answer returned.');
+    const answerSubjects = (data.answer || []).filter(x => /^042-S\d{2}-\d{3}$/.test(String(x)));
+    safeHtml('lookupSubjects', answerSubjects.length
+      ? answerSubjects.map(s => '<button class="subjectlookup" data-subject="' + escapeHtml(s) + '">' + escapeHtml(s) + '</button>').join('')
+      : '<span class="termempty">No subject list in this answer.</span>');
+    document.querySelectorAll('.subjectlookup').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        closeModal('queryModal');
+        await focusSubject(btn.dataset.subject, 'What is the patient360 for ' + btn.dataset.subject + '?', btn.dataset.subject);
+      });
+    });
     safeHtml('queryEvidence', renderEvidence(data.evidence));
 
     if (options.subject) {
@@ -156,6 +244,7 @@ async function focusSubject(subject, question, label) {
     safeText('liveAnswerTitle', label);
     safeText('liveAnswer', data.text || (data.answer || []).join(', ') || 'No findings returned.');
     safeText('medicalContext', 'Cut ' + currentCut() + ' · ' + protocolFor(currentCut()) + ' · ' + (data.evidence?.length || 0) + ' source records');
+    await loadPatientTerms(subject);
     trace('<b>[focus]</b> ' + subject + ' selected');
     return data;
   } catch (error) {
@@ -249,6 +338,10 @@ async function handleFocus(button) {
 
 function bind() {
   el('cycle')?.addEventListener('click', runCycle);
+  el('askQuestion')?.addEventListener('click', askAtlas);
+  el('questionInput')?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') askAtlas();
+  });
 
   el('cut')?.addEventListener('change', async () => {
     try {
