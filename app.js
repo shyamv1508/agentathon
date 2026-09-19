@@ -610,7 +610,8 @@ el('centerPatientClose')?.addEventListener('click', () => {
   });
 
   document.querySelectorAll('.subject').forEach(node => {
-    node.addEventListener('click', () => {
+    node.addEventListener('click', (event) => {
+      event.stopPropagation();
       const subject = node.dataset.subject;
       const focus = document.querySelector('.focus[data-subject="' + subject + '"]');
       if (focus) {
@@ -651,7 +652,8 @@ el('centerPatientClose')?.addEventListener('click', () => {
   });
 
   document.querySelectorAll('.site').forEach(site => {
-    site.addEventListener('click', () => {
+    site.addEventListener('click', (event) => {
+      event.stopPropagation();
       const siteId = site.textContent.trim();
       const questions = {
         S07: 'Which subjects have Hy’s Law findings?',
