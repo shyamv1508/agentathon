@@ -121,3 +121,35 @@ body{font-size:12px}
 .nodepreview b{font-size:13px}
 .nodepreview small{font-size:9px;line-height:1.65}
 .grapharea .node:hover{z-index:120!important}
+
+/* separated graph layout: keep every node visibly apart */
+.s1{left:25%;top:24%}
+.s2{left:79%;top:24%}
+.s3{left:82%;top:76%}
+.s4{left:23%;top:76%}
+.n1{left:35%;top:31%}
+.n2{left:72%;top:35%}
+.n3{left:70%;top:69%}
+.a1{left:39%;top:42%}
+.a2{left:58%;top:63%}
+.a3{left:62%;top:37%}
+.quarantine{left:31%;top:83%}
+
+/* visible spring-like orbital rings */
+.ring{
+  border:0;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(69,232,208,.8) 0deg 7deg, transparent 7deg 16deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  box-shadow:0 0 18px #45e8d01c;
+}
+.ring2{
+  background:
+    repeating-conic-gradient(from 18deg, rgba(72,201,236,.55) 0deg 5deg, transparent 5deg 13deg);
+}
+.ring3{
+  background:
+    repeating-conic-gradient(from 35deg, rgba(69,232,208,.32) 0deg 4deg, transparent 4deg 11deg);
+}
+.ring1,.ring2,.ring3{opacity:.95}
