@@ -29,6 +29,17 @@
 
 <section class="grapharea">
   <div class="graphhead"><b>3D ORBITAL KNOWLEDGE GRAPH</b><span>semantic view · click any node to focus</span></div>
+  <div id="centerPatient" class="centerpatient hidden">
+    <div class="centerpatient-head">
+      <div><small>PATIENT 360 · CENTER FOCUS</small><h2 id="centerPatientId">—</h2><span id="centerPatientMeta">Loading subject evidence…</span></div>
+      <button id="centerPatientClose">← BACK TO GRAPH</button>
+    </div>
+    <div class="centerpatient-grid">
+      <div class="centercard"><small>CLINICAL STATUS</small><b id="centerStatus">—</b><p id="centerAnswer">Fetching StudyGraph evidence…</p></div>
+      <div class="centercard"><small>PROTOCOL</small><b id="centerProtocol">—</b><p id="centerContext">—</p></div>
+      <div class="centercard wide"><small>SOURCE EVIDENCE</small><div id="centerEvidence">Loading…</div></div>
+    </div>
+  </div>
   <div class="graph">
     <div class="ring ring3"></div><div class="ring ring2"></div><div class="ring ring1"></div>
     <div class="link l1"></div><div class="link l2"></div><div class="link l3"></div><div class="link l4"></div>
