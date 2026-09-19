@@ -192,10 +192,16 @@ async function showQuery(title, question, options = {}) {
   try {
     const data = await apiQuery(question);
     safeText('queryAnswer', data.text || (data.answer || []).join(', ') || 'No answer returned.');
-    const answerSubjects = (data.answer || []).filter(x => /^042-S\d{2}-\d{3}$/.test(String(x)));
+    const answerValues = Array.isArray(data.answer) ? data.answer : [];
+    const evidenceSubjects = Array.isArray(data.evidence)
+      ? data.evidence.map(x => x?.usubjid).filter(Boolean)
+      : [];
+    const answerSubjects = [...new Set([...answerValues, ...evidenceSubjects]
+      .map(x => String(x))
+      .filter(x => /^042-S\d{2}-\d{3}$/.test(x)))];
     safeHtml('lookupSubjects', answerSubjects.length
       ? answerSubjects.map(s => '<button class="subjectlookup" data-subject="' + escapeHtml(s) + '">' + escapeHtml(s) + '</button>').join('')
-      : '<span class="termempty">No subject list in this answer.</span>');
+      : '<span class="termempty">' + escapeHtml(data.text || 'No subject list in this answer.') + '</span>');
     document.querySelectorAll('.subjectlookup').forEach(btn => {
       btn.addEventListener('click', async () => {
         closeModal('queryModal');
