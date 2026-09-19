@@ -508,3 +508,31 @@ body{font-size:12px}
 .workspace:not(.patient-center-mode) .patient-back{
   display:none!important;
 }
+
+
+/* circular transparent back arrow */
+.patient-back{
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  padding:0!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  color:var(--muted)!important;
+  display:none;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:22px!important;
+  line-height:1!important;
+  box-sizing:border-box!important;
+  box-shadow:none!important;
+}
+.patient-back:hover{
+  color:var(--cyan)!important;
+  border-color:rgba(69,232,208,.35)!important;
+  background:rgba(69,232,208,.06)!important;
+}
+.workspace.patient-center-mode .patient-back{
+  display:inline-flex!important;
+}
