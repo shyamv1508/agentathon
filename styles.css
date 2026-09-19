@@ -310,3 +310,8 @@ body{font-size:12px}
   width:500px!important;
   height:285px!important;
 }
+
+
+/* separate top nodes on inner and middle orbits */
+.n1{left:52%!important;top:calc(50% - 95px)!important}
+.s1{left:52%!important;top:calc(50% - 150px)!important}
