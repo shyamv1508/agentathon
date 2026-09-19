@@ -536,3 +536,35 @@ body{font-size:12px}
 .workspace.patient-center-mode .patient-back{
   display:inline-flex!important;
 }
+
+/* ATLAS WATCH — additive demo layer */
+.watchcard{margin:14px 0;padding:14px;border:1px solid rgba(69,232,208,.18);border-radius:12px;background:linear-gradient(135deg,rgba(69,232,208,.055),rgba(72,201,236,.025))}
+.watchhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.watchhead small,.watchsection>small{display:block;color:var(--muted);font-size:9px;letter-spacing:.14em}
+.watchhead b{display:block;margin-top:4px;font-size:13px}
+.watchhead span{font-size:9px;color:var(--cyan);border:1px solid rgba(69,232,208,.25);padding:4px 6px;border-radius:6px}
+.watchcard p{margin:9px 0;color:var(--muted);font-size:11px;line-height:1.45}
+.watchmetrics{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:10px 0}
+.watchmetrics span{padding:7px 4px;border:1px solid rgba(255,255,255,.07);border-radius:7px;text-align:center}
+.watchmetrics b,.watchmetrics small{display:block}
+.watchmetrics b{font-size:15px;color:#fff}
+.watchmetrics small{font-size:7px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.watchrun{width:100%;border:1px solid rgba(69,232,208,.28);background:rgba(69,232,208,.07);color:var(--cyan);border-radius:8px;padding:9px 12px;cursor:pointer;font-weight:700;letter-spacing:.04em}
+.watchrun:hover{background:rgba(69,232,208,.12)}
+.watchrun:disabled{opacity:.55;cursor:wait}
+.watchrun.done{border-color:rgba(104,224,154,.35);color:#8ff0b0}
+.watchmodal{width:min(920px,calc(100% - 32px));max-height:88vh;overflow:auto}
+.watchgrid{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin:14px 0}
+.watchsection{border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:13px;background:rgba(255,255,255,.025)}
+.watchsection.wide{grid-column:1/-1}
+.watchsection>b{display:block;margin:8px 0;color:#fff}
+.watchsection p{color:var(--muted);line-height:1.55;margin:8px 0}
+.watchcut{display:grid;grid-template-columns:52px 42px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}
+.watchcut span{color:var(--cyan)}
+.watchcut em{font-style:normal;color:var(--muted);text-align:right}
+.watchbudget{margin-top:10px!important}
+.decisionlist{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.decisionchip{border:1px solid rgba(69,232,208,.22);background:rgba(69,232,208,.05);color:var(--cyan);padding:7px 9px;border-radius:7px;cursor:pointer;font-size:10px}
+.decisionchip:hover{background:rgba(69,232,208,.11)}
+.watchsection ul{margin:8px 0 0 18px;color:var(--muted);line-height:1.5}
+@media(max-width:900px){.watchgrid{grid-template-columns:1fr}.watchsection.wide{grid-column:auto}}
