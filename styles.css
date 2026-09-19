@@ -80,3 +80,33 @@ button:disabled{cursor:wait;opacity:.6}
   #lookupSubjects,#queryEvidence{max-height:180px}
   .querybox{max-height:92vh}
 }
+
+/* readability + animated orbital background */
+body{font-size:12px}
+.sub,.study,.paneltitle,.metric small,.metric span,.sectionlabel,.sitehealth span,.graphhead,.legend,.meta,.asidehead small,.tabs,.timeline small,.evidencecard small,.reverse,.termhead,.terminal p,.footer,.mhead small,.record span,.record code,.clarify{font-size:8px}
+.focus{font-size:9px}
+.graphhead{font-size:9px}
+.sitehealth div{font-size:9px}
+.evidencecard b{font-size:10px}
+.evidencecard p{font-size:8px}
+.timeline b{font-size:9px}
+.gate,.terminal button,.askbar button{font-size:9px}
+.ring{will-change:transform;animation:atlasOrbit 22s linear infinite}
+.ring2{animation-duration:30s;animation-direction:reverse}
+.ring3{animation-duration:42s}
+@keyframes atlasOrbit{
+  from{transform:translate(-50%,-50%) rotate(0deg)}
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+.nodepreview{
+  position:absolute;z-index:50;display:none;min-width:190px;max-width:280px;
+  padding:11px 13px;background:#06161bdd;border:1px solid #2d7b79;border-radius:9px;
+  box-shadow:0 18px 50px #000b,0 0 28px #45e8d01c;backdrop-filter:blur(12px);
+  pointer-events:none;transform:translate(10px,10px)
+}
+.nodepreview.show{display:block;animation:previewIn .16s ease both}
+.nodepreview b{display:block;color:var(--cyan);font:600 12px 'Space Grotesk';margin-bottom:5px}
+.nodepreview small{display:block;color:#789397;font:8px 'DM Mono';line-height:1.5}
+.nodepreview strong{color:#e4f3f1;font-weight:500}
+@keyframes previewIn{from{opacity:0;transform:translate(10px,14px) scale(.96)}to{opacity:1;transform:translate(10px,10px) scale(1)}}
+.grapharea .node:hover{filter:brightness(1.3);box-shadow:0 0 25px #45e8d055}
