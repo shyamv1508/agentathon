@@ -161,6 +161,19 @@ def lookup(type: str = "", value: str = "", cut: int = 12):
         {"domain": r.get("_domain"), "usubjid": r.get("USUBJID"), "seq": r.get("_seq")} for r in matches
     ]}
 
+@app.get("/api/escalations")
+def escalations(cut: int = 12):
+    if cut < 1 or cut > 12:
+        raise HTTPException(status_code=400, detail="cut must be between 1 and 12")
+    crew = get_crew()
+    pending = []
+    for entry in crew.memory.get("escalations", {}).values():
+        if entry.get("status") == "pending" and int(entry.get("cut", cut)) <= cut:
+            pending.append(entry)
+    pending.sort(key=lambda x: (x.get("cut", 0), x.get("code", ""), x.get("usubjid") or ""))
+    return {"cut": cut, "escalations": pending, "count": len(pending)}
+
+
 @app.get("/api/cycle")
 def cycle(cut: int = 12):
     if cut < 1 or cut > 12:
