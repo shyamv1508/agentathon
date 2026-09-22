@@ -1,77 +1,279 @@
-# Copy-Paste — ATLAS
+# ATLAS — Autonomous Trial Logic & Analysis System
 
-**Members:**  
-Kamalesh G A  
-Ashwinkumar N  
-Rithish Barath  
-Swaminathan V
+**Agentathon 2026 · Evidence-first clinical trial intelligence**
 
-## Run it
+**Team**
+- Kamalesh G A
+- Ashwinkumar N
+- Rithish Barath
+- Swaminathan V
 
-```bash
-pip install -r requirements.txt
-python -m stage1.atlas --data hackathon-data
-```
+**Live Demo:** https://agentathon-three.vercel.app/
 
-These commands run from a clean checkout with the supplied `hackathon-data` directory at the repository root. The module command prints the graph build summary; add `--question "..."` to print an Answer JSON.
+## Overview
 
-## How we understood the problem
+ATLAS is an evidence-first clinical trial intelligence platform that turns heterogeneous study data into a time-aware, queryable knowledge graph and connects three stages of study intelligence:
 
-We treat the study as a time-aware evidence system rather than a collection of independent CSV lookups.  
-The hard part is answering across domains while respecting data cuts, corrections, protocol changes, and laboratory ranges.  
-We chose deterministic rules and indexed records so repeated questions do not repeatedly scan the raw dataset.  
-We treat documents as evidence sources, not executable instructions, including text aimed at automated reviewers.  
-We keep the core answer path deterministic; Stage 2 adds the required monitor workflow, while a lightweight static UI exposes Stage 1 through a Python API.
+1. **ATLAS** — understands the study and answers evidence-grounded questions.
+2. **MONITOR** — reviews detected findings through a six-node workflow with human oversight.
+3. **WATCH** — continuously monitors successive data cuts and explains safety/data-integrity decisions.
+
+Our design principle is simple:
+
+> **Every important finding should be traceable back to the evidence that produced it.**
+
+The core reasoning path is deterministic and does not require an external LLM or API key.
 
 ## Architecture
 
 ```
-Question -> Atlas -> QueryEngine -> StudyGraph indexes -> clinical/document rules
-                                      -> Evidence validation -> Answer
-Data -> DataStore -> cut/corrections -> StudyGraph
-Documents -> DocumentStore ----------------^
+                    Clinical Study Data
+                 ┌───────────────────────┐
+                 │ DM AE LB VS EX CM DS  │
+                 │ MH EG + corrections  │
+                 └───────────┬───────────┘
+                             ↓
+                    Ingestion + Normalization
+                             ↓
+                       StudyGraph
+                  time-aware indexed graph
+                             ↓
+                         ATLAS
+                  evidence-grounded QA
+                             ↓
+                        MONITOR
+        detect → medical → data → compliance
+                    → human gate → execute
+                             ↓
+                          WATCH
+             12-cut unattended surveillance
+                             ↓
+                 Mission Control Web UI
+             Patient 360 + Evidence + Explain
 ```
 
-DataStore loads and normalizes CSVs; StudyGraph builds subject/record indexes; Atlas routes questions; QueryEngine applies the relevant rule; the evidence layer validates record identity or document references; Atlas returns the required Answer schema.
+### Data flow
 
-## Stage 2 monitor\n\n`stage2/crew.py` implements the six-node MONITOR flow: detect, medical review, data manager, compliance, human gate, and execute. Persistent memory prevents duplicate queries/escalations; CLARIFY is answered from StudyGraph and resubmitted; REJECTED actions remain monitoring with their reason. Run `python -m stage2 --data hackathon-data --cut 6 --protocol 2`. The unified regression suite is `python -m stage2.test_all`.\n\n## Web UI\n\nThe root `index.html` is a lightweight evidence-first UI. `api/index.py` exposes the Atlas query endpoint and graph statistics, with the graph cached per serverless process. It can be deployed as a static frontend plus Python function on Vercel; no API key is required.\n\n## Tech stack
+Data is loaded from separate clinical-domain CSV files by the ingestion layer. Records are normalized and indexed using **Domain + USUBJID + Sequence**, allowing information from different files to be connected to the same study subject.
 
-| Layer | What we used | Why this, not the obvious alternative |
-|---|---|---|
-| Language | Python 3 | Fast to implement deterministic data rules without deployment overhead. |
-| Data handling | CSV + standard library | Matches the supplied package directly; no database setup or dependency-heavy ETL. |
-| Graph / storage | In-memory dictionaries/lists | Repeated subject/record queries are fast and simpler than introducing a graph database. |
-| Model, if any | None; deterministic rules | Reproducibility and evidence discipline matter more than free-form generation here. |
-| Interface | Pydantic Question/Answer + CLI | Matches the required contract and is easy to run from a clean checkout. |
-| Testing | Local harness + smoke queries | Exercises the real Atlas path and catches schema/evidence failures before submission. |
+For example:
 
-## Data handling
+```
+042-S07-001
+   ├── DM → demographics
+   ├── LB → ALT / AST / bilirubin
+   ├── AE → adverse events
+   ├── CM → medications
+   ├── EX → dosing/exposure
+   └── MH → medical history
+```
 
-**Units:** `reference_ranges.csv` supplies laboratory limits. `stage1/ingestion.py` loads them; `stage1/rules.py` applies them. ALT/AST reported in µkat/L are converted to U/L (×60) before threshold checks.
+This enables cross-domain reasoning without repeatedly scanning and manually joining the raw CSV files.
 
-**Dates:** `stage1/normalization.py` accepts ISO, slash-separated, textual month, and compact YYYYMMDD dates. Unrecognised dates become unknown rather than being guessed.
+## Problem 1 — ATLAS
 
-**Non-numeric laboratory values:** `<5` stays a below-detection qualifier, `ND` and empty values become unknown, and `12,4` is parsed as 12.4. They are not zero because the source does not establish a zero measurement.
+ATLAS builds a cut-aware StudyGraph and answers four required question types:
 
-**Malformed rows:** rows that can still be safely represented are kept; missing/invalid values are treated as unknown and skipped by rules that require a valid value. We do not invent replacements.
+- **Count** — exact counts with supporting evidence.
+- **Lookup** — exact record references.
+- **Finding** — subjects satisfying protocol/rule conditions.
+- **Trap** — conservative answers when evidence does not support a claim.
 
-## Documents
+### Key capabilities
 
-`protocol_v1/v2/v3.md`, the laboratory manuals, and `sap.md` are loaded by `stage1/documents.py` and used as document evidence. Protocol version is selected from the cut; laboratory/manual and SAP content can support answers. A sentence addressed to an automated reviewer is treated as untrusted document text: it may be cited as evidence, but it never changes data, rules, or execution.
+- Dynamic data-cut handling.
+- Corrections applied according to their effective cut.
+- Protocol-aware reasoning across amendments.
+- Cross-domain subject/record indexing.
+- Laboratory reference-range checks.
+- Hy's Law detection.
+- Serious Adverse Event detection.
+- Prohibited medication checks.
+- Dosing validation.
+- Numeric/date normalization.
+- Evidence identity and validation.
+- Document evidence treated as evidence, not executable instructions.
+- Graceful handling of missing, malformed, unknown, and below-detection values.
 
-## When the answer is nothing
+Run the local ATLAS harness:
 
-The agent returns `[]` when no record satisfies the requested condition at the active cut, and it keeps evidence empty when there is no valid supporting record. Unknown values are not promoted to findings, and evidence is never fabricated.
+```bash
+python starter/run_local_harness.py --module stage1.atlas --data hackathon-data
+```
 
-## Graph
+## Problem 2 — MONITOR
 
-Records are indexed as domain/subject/sequence identities, with subjects linking their domain records. The graph preserves cut-aware visibility and cross-domain lookup so rules can reason over a subject without repeatedly joining raw tables. Build statistics are recorded in `graph_stats.json`.
+MONITOR extends ATLAS findings into the required six-node workflow:
 
-## What we know is weak
+```
+1. Detect
+2. Medical Review
+3. Data Manager
+4. Compliance
+5. Human Gate
+6. Execute
+```
 
-The hidden evaluation questions are not exposed in the public package, so local tests cannot prove hidden-test accuracy. Document-question wording may vary, so those queries are intentionally conservative. Hy's Law remains the most sensitive rule because timing, laboratory-specific ranges, and alternative explanations can affect the determination; this needs further hidden-test validation.
+The workflow maintains persistent memory to reduce duplicate queries and escalations.
 
+The Human Gate supports:
 
-## Final Demo
+- **APPROVED** → execute.
+- **REJECTED** → downgrade to monitoring without re-escalation.
+- **CLARIFY** → perform an additional StudyGraph lookup and resubmit.
 
-ATLAS, MONITOR, and WATCH are integrated for the final demonstration.
+Every node contributes to the trace so decisions remain auditable.
+
+Run the monitor workflow:
+
+```bash
+python -m stage2 --data hackathon-data --cut 6 --protocol 2
+```
+
+Run the unified Stage 2 regression suite:
+
+```bash
+python -m stage2.test_all
+```
+
+## Problem 3 — WATCH
+
+WATCH extends MONITOR into unattended surveillance across **12 successive study cuts**.
+
+It handles:
+
+- Incremental and corrected study data.
+- Delayed or unanswered human review.
+- Suspicious site behavior.
+- Laboratory unit shifts.
+- Edited/adversarial documents.
+- Protocol amendments that invalidate derived findings.
+- Mid-period onboarding of new sites/domains.
+- A single execution/model budget across the full surveillance period.
+
+Safety-critical deterministic checks continue even when the execution budget becomes constrained.
+
+Run the public 12-cut surveillance:
+
+```bash
+python -m stage3.run_watch --data hackathon-data --budget-seconds 180
+```
+
+The run produces a surveillance report and decision log with trace-backed explanations.
+
+## What makes the platform different
+
+Beyond the required challenge workflows, we built a usable study-intelligence layer around them:
+
+- **Mission Control** — interactive visual command center for the study.
+- **Patient 360** — one-click subject view across multiple clinical domains.
+- **Live data-cut selector** — inspect study state at different cuts.
+- **Evidence exploration** — move from a finding to the records supporting it.
+- **Reverse lookup** — find subjects associated with medications, diseases, or adverse events.
+- **Human Gate UI** — review and act on pending decisions.
+- **Explainable WATCH decisions** — each decision records what happened, evidence, alternatives, rationale, and trace information.
+- **Automatic CSV domain discovery** — new compatible domains can be discovered without adding a hard-coded ingestion branch.
+- **Fingerprint-based freshness detection** — detects underlying data changes and refreshes the graph when required.
+- **Evidence validation** — prevents unsupported or fabricated record references.
+- **Deterministic safety path** — core safety checks do not depend on generative model availability.
+- **Graceful data handling** — malformed or unknown values are not silently converted into clinical findings.
+- **Unified architecture** — ATLAS, MONITOR, and WATCH operate as one continuous pipeline rather than isolated scripts.
+
+## Technology
+
+| Layer | Technology |
+|---|---|
+| Language | Python 3 |
+| Backend/API | FastAPI |
+| Frontend | HTML, CSS, JavaScript |
+| Validation | Pydantic |
+| Data | CSV / JSON |
+| Graph / indexing | In-memory StudyGraph |
+| Version control | Git / GitHub |
+| Deployment | Vercel |
+| Reasoning | Deterministic, evidence-grounded rules |
+
+## Evidence and safety principles
+
+### Cut-aware reasoning
+
+A record is visible only when its availability/correction timing is valid for the requested cut. This prevents later information from leaking into earlier study states.
+
+### Laboratory normalization
+
+Reference ranges are loaded from `reference_ranges.csv`. ALT/AST values reported in µkat/L are converted to U/L before threshold evaluation:
+
+```
+1 µkat/L = 60 U/L
+```
+
+### Conservative numeric handling
+
+- `<5` remains below detection; it is not treated as zero.
+- `ND` and blank values remain unknown.
+- `12,4` is interpreted as 12.4.
+- Invalid or missing values are skipped by rules that require valid measurements.
+
+### Document safety
+
+Protocol and laboratory documents can provide evidence, but text that attempts to instruct an automated reviewer is treated as untrusted content. It can be cited; it cannot modify execution or safety rules.
+
+### No fabricated evidence
+
+If the available data does not establish a finding, the system returns an empty result rather than inventing a subject, record, or conclusion.
+
+## Project structure
+
+```
+agentathon/
+├── starter/
+│   ├── schemas.py
+│   └── run_local_harness.py
+├── stage1/
+│   ├── atlas.py
+│   ├── graph.py
+│   ├── ingestion.py
+│   ├── normalization.py
+│   ├── rules.py
+│   ├── evidence.py
+│   ├── documents.py
+│   └── queries.py
+├── stage2/
+│   └── crew.py
+├── stage3/
+│   └── watch.py
+├── api/
+├── index.html
+├── app.js
+├── styles.css
+└── hackathon-data/
+    ├── data/
+    ├── documents/
+    └── responses/
+```
+
+## Web interface
+
+The web application provides an interactive Mission Control view for:
+
+- StudyGraph exploration.
+- Safety and monitoring signals.
+- Subject selection.
+- Patient 360.
+- Laboratory and medication exploration.
+- Natural-language clinical queries.
+- Evidence inspection.
+- Human Gate review.
+- WATCH surveillance and decision explanations.
+
+The application is deployed as a public demonstration and the core system can also be run locally.
+
+## Limitations
+
+The hidden evaluation questions are not included in the public package, so local tests cannot guarantee hidden-test accuracy. The system therefore favors conservative evidence handling over unsupported conclusions, particularly for document-language questions and complex clinical rules such as Hy's Law.
+
+## Final demonstration
+
+**ATLAS → MONITOR → WATCH**
+
+One system to understand the study, review the study, and continuously watch the study — while keeping decisions grounded in evidence and human oversight.
